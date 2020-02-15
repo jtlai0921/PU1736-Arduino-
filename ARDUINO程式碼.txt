@@ -1,0 +1,4110 @@
+第六章Arduino平台
+6.2.2 Arduino IDE的使用
+/*
+  Blink
+  Turns on an LED on for one second, then off for one second, repeatedly.
+  This example code is in the public domain.
+ */
+// Pin 13 has an LED connected on most Arduino boards.
+// give it a name:
+int led = 13;
+// the setup routine runs once when you press reset:
+void setup() {
+  // initialize the digital pin as an output.
+  pinMode(led, OUTPUT);
+}
+// the loop routine runs over and over again forever:
+void loop() {
+  digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
+  delay(1000);               // wait for a second
+  digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
+  delay(1000);               // wait for a second
+}
+	
+6.3.3 模擬I/O介面的操作函數
+模擬I/O介面的操作函數使用常式如下：
+int sensor=A0; //A0接腳讀取電位器
+int LED=11;  //第11接腳輸出LED
+void setup()
+{ Serial.begin(9600);
+}
+void loop()
+{  int v;
+     v=analogRead(sensor);
+  Serial.println(v,DEC); //可以觀察讀取的模擬量
+    analogWrite(LED,v/4);  //讀回的值範圍是0~1023結果除以4才能獲得0~255的區間值
+  }
+
+6.3.4 進階I/O Pulseln(pin,state,timeout)
+
+int button=3;
+int count;
+void setup()
+{
+pinMode(button,INPUT);
+}
+void loop()
+{ count=pulseIn(button,HIGH);
+    if(count!=0)
+    { Serial.println(count,DEC);
+      count=0;
+    }
+}
+
+6.3.5 時間函數
+使用Arduino開發板控制四個LED燈依次點亮，程式如下：
+void setup()
+{
+ pinMode(6,OUTPUT);  //定義為輸出
+   pinMode(7,OUTPUT);
+ pinMode(8,OUTPUT);
+ pinMode(9,OUTPUT);
+}
+void loop()
+{
+ int i; 
+for(i=6;i<=9;i++)  //依次循環四盞燈
+{
+digitalWrite(i,HIGH); //點亮LED
+     delay(1000);  //持續1秒
+     digitalWrite(i,LOW); //熄滅LED
+     delay(1000);  //持續1秒
+    }
+}
+
+計時間函數使用範例，延遲時間10秒後自動點亮的燈，程式如下：
+int LED=13;
+unsigned long i,j; 
+void setup()
+{
+pinMode(LED,OUTPUT);
+ i=millis(); //讀取初值
+}
+void loop()
+{  
+j=millis(); //不斷讀取目前時間值
+    if((j-i)>10000) //如果延遲時間超過10秒，點亮LED
+      {
+digitalWrite(LED,HIGH);
+       }
+   else digitalWrite(LED,LOW);
+}
+
+顯示目前的微秒值
+unsigned long time; 
+void setup()
+{ 
+Serial.begin(9600); 
+} 
+void loop()
+{ 
+Serial.print("Time: "); 
+time = micros(); //讀取目前的微秒值
+Serial.println(time); // 列印開機到目前執行的微秒值
+delay(1000);  //延遲時間1秒
+}
+
+常式之二，跑馬燈的另一種實現方式：
+int LED=13;
+unsigned long i,j; 
+void setup()
+{
+pinMode(LED,OUTPUT);
+ i=micros(); //讀取初值
+}
+void loop()
+{  
+j=micros(); //不斷讀取目前時間值
+   if((j-i)>1000000) //如果延遲時間超過10秒，點亮LED
+      {
+digitalWrite(LED1+k,HIGH);
+       }
+   else digitalWrite(LED,LOW);
+}
+
+6.3.6 中斷函數
+
+常式1試驗LOW，CHANGE參數，常式2試驗RISING和FALLING參數。
+常式1：
+volatile int state1=LOW,state2=LOW;
+int LED1=4;
+int LED2=5;
+int LED3=13;  //使用板載的LED燈
+void setup()
+{ 
+pinMode(LED1,OUTPUT);
+  pinMode(LED2,OUTPUT);
+  pinMode(LED3,OUTPUT);
+  attachInterrupt(0,LED1_Change,LOW); //低電位觸發
+  attachInterrupt(1,LED2_Change,CHANGE); //任意電位變化觸發
+}
+void loop()
+{ 
+digitalWrite(LED3,HIGH); 
+  delay(500);
+   digitalWrite(LED3,LOW);
+   delay(500);
+}
+void LED1_Change()
+{ 
+state1=!state1;
+   digitalWrite(LED1,state1);
+   delay(100);
+}
+void LED2_Change()
+{ 
+state2=!state2;
+  digitalWrite(LED2,state2);
+ delay(100);
+}
+
+常式2：
+volatile int state1=LOW,state2=LOW;
+int LED1=4;
+int LED2=5;
+int LED3=13;
+void setup()
+{ 
+pinMode(LED1,OUTPUT);
+   pinMode(LED2,OUTPUT);
+   pinMode(LED3,OUTPUT);
+   attachInterrupt(0,LED1_Change,RISING); //電位上昇緣觸發
+   attachInterrupt(1,LED2_Change,FALLING); //電位下降緣觸發
+}
+void loop()
+{
+ digitalWrite(LED3,HIGH);
+   delay(500);
+   digitalWrite(LED3,LOW);
+   delay(500);
+}
+void LED1_Change()
+{ 
+state1=!state1;
+   digitalWrite(LED1,state1);
+   delay(100);
+}
+void LED2_Change()
+{ 
+state2=!state2;
+   digitalWrite(LED2,state2);
+delay(100);
+}
+
+6.3.7 序列埠通訊函數
+序列埠通訊函數使用常式：
+int x=0;
+void setup()
+{ Serial.begin(9600); //串列傳輸速率9600
+}
+void loop()
+{
+  if(Serial.available())
+     {  x=Serial.read();
+        Serial.print("I have received:"); 
+        Serial.println(x,DEC);  //輸出並換行
+     }
+    delay(200);
+}
+
+第7章Arduino資料獲取
+7.1 溫濕度擷取
+/* Lab10 - SHT1x 系列(SHT10, SHT11, SHT15)溫濕度計的讀取範例   需安裝SHT1x Library:   https://github.com/practicalarduino/SHT1x/ */  #include <SHT1x.h>  // 定義SHT1x 連接的腳位 #define dataPin  11 #define clockPin 10  // 初始化sht1x 物件 SHT1x sht1x(dataPin, clockPin); void setup() {    Serial.begin(9600);  //使用9600速率進行序列埠通訊
+} void loop() {   // 宣告三個變數，分別代表溫度(攝氏), 溫度(華氏) 以及濕度
+  float temp_c, temp_f, humidity;    // 讀取SHT1x 溫濕度值   temp_c = sht1x.readTemperatureC();   temp_f = sht1x.readTemperatureF();   humidity = sht1x.readHumidity();    // 將讀到的溫濕度值值輸出至Serial Port   Serial.print("Temperature: ");   //序列埠輸出   Serial.print(temp_c, 1);  // 顯示到小數點後一位   Serial.print("C / ");   Serial.print(temp_f, 1);  // 顯示到小數點後一位   Serial.print("F. Humidity: ");   Serial.print(humidity);   Serial.println("%");   delay(1000);  //等待1秒 }
+7.2 水位擷取
+實驗程式
+#include<Arduino.h>
+int adc_id = 2;
+int HistoryValue = 0;
+char printBuffer[128];
+void setup()
+{
+  Serial.begin(9600);  //設定序列埠串列傳輸速率為9600kbps
+}
+void loop()
+{
+    int value = analogRead(adc_id); // 讀取adc值
+
+    if(((HistoryValue>=value) && ((HistoryValue - value) > 10)) || ((HistoryValue<value) && ((value - HistoryValue) > 10)))
+    {
+      sprintf(printBuffer,"ADC%d level is %d\n",adc_id, value);
+      Serial.print(printBuffer);
+      HistoryValue = value;
+    }
+}
+
+7.3 光強擷取
+光敏電阻功能一：讀取光強的數值
+int photocellPin = 2; // 光敏電阻(photocell) 接在anallog pin 2
+int photocellVal = 0; // 定義變數
+void setup()
+ {
+    Serial.begin(9600);// 設定序列埠串列傳輸速率為9600kbps
+}
+void loop()
+ {
+  // 讀取光敏電阻並輸出到Serial Port 
+    photocellVal = analogRead(photocellPin);
+    Serial.println(photocellVal);  
+    delay(100);       
+  }
+
+光敏電阻功能二：控制LED燈
+int photocellPin = 2; // 光敏電阻(photocell) 接在anallog pin 2
+int photocellVal = 0; // photocell variable
+int minLight = 200;   // 最小光線門檻值，LED燈的控制值
+int ledPin = 9;
+int ledState = 0; 
+
+void setup() 
+{
+  pinMode(ledPin, OUTPUT); 
+    Serial.begin(9600);
+}
+
+void loop() 
+{  
+    photocellVal = analogRead(photocellPin);
+    Serial.println(photocellVal);                 // 讀取光敏電阻的值並輸出到Serial Port
+    if (photocellVal < minLight && ledState == 0)   // 光線不足時開啟LED
+{     
+       digitalWrite(ledPin, HIGH); // turn on LED
+       ledState = 1;
+      }    
+if (photocellVal > minLight && ledState == 1)    // 光線充足時關掉LED
+ {
+       digitalWrite(ledPin, LOW); // turn off LED
+       ledState = 0;
+     }    
+  delay(100);       
+}
+7.4 氣體感測器
+//定義變數
+float tempAD;
+int tempPin = 0;
+void setup()
+{
+Serial.begin(9600); //設定序列埠串列傳輸速率為9600kbps 
+void loop()
+{
+tempAD = analogRead(tempPin);           //從感測器處讀取資料
+Serial.print("AD=");
+Serial.print((byte)tempAD);             //將資料輸出到電腦
+Serial.print("\n");  
+delay(1000);                           //在輸出下一個資料前等待一秒
+}
+}
+7.5 超音波感測器
+#include<NewPing.h>;
+const int TrigPin = 2;     // TRIG接到arduino的第二接腳
+const int EchoPin = 3;    // ECHO接到arduino的第三接腳
+float cm; 
+void setup() 
+{ 
+Serial.begin(9600);          //設定序列埠串列傳輸速率為9600kbps
+pinMode(TrigPin, OUTPUT); 
+pinMode(EchoPin, INPUT); 
+} 
+void loop() 
+{ 
+digitalWrite(TrigPin, LOW); //低高低電位發一個短時間脈衝去TrigPin 
+delayMicroseconds(2); 
+digitalWrite(TrigPin, HIGH); 
+delayMicroseconds(10); 
+digitalWrite(TrigPin, LOW); 
+cm = pulseIn(EchoPin, HIGH) / 58.0; //將回波時間換算成cm 
+cm = (int(cm * 100.0)) / 100.0; //保留兩位小數
+Serial.print(cm); 
+Serial.print("cm"); 
+Serial.println(); 
+delay(1000); 
+}
+7.6 壓力感測器
+實驗程式
+int ledpin=11;
+int potpin=0;
+int val; 
+int i;             //定義變數
+void setup()
+{
+  pinMode(ledpin,OUTPUT);
+  pinMode(potpin,INPUT);
+    Serial.begin(9600);     //設定序列埠串列傳輸速率為9600kbps
+}
+void loop()
+{
+  val=analogRead(potpin);         //讀取壓力數值
+  analogWrite(ledpin,val);         //輸出到LED通訊埠
+    Serial.println(val);
+ }  7.7 風速感測器
+int sensorValue;
+  float value;
+  float fanspeed;
+void setup()
+{
+Serial.begin(9600);
+}
+void loop()
+ {
+int sensorValue = analogRead(A0);
+Serial.println(sensorValue);
+float value = sensorValue * (5.0 / 1024.0);
+Serial.println(value);
+float fanspeed = value - 0.4 ;
+Serial.print( fanspeed );
+fanspeed = fanspeed * 1.6*32.4 ;
+Serial.print("fanspeed is ");
+Serial.print( fanspeed );
+Serial.println( "m/s" );
+delay(500);
+}
+7.8 拍照模組
+#include <SD.h>
+#include <SoftwareSerial.h> 
+#define chipSelect 4
+#if ARDUINO >= 100
+SoftwareSerial cameraconnection = SoftwareSerial(2, 3);
+#else
+NewSoftSerial cameraconnection = NewSoftSerial(2, 3);
+#endif
+camera_VC0706 cam = camera_VC0706(&cameraconnection);
+void setup() 
+{
+#if !defined(SOFTWARE_SPI)
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+	if(chipSelect != 53) pinMode(53, OUTPUT); // SS on Mega
+#else
+	if(chipSelect != 4) pinMode(4, OUTPUT); // SS on Uno, etc.
+#endif
+#endif
+ pinMode(7,INPUT_PULLUP);
+Serial.begin(9600);
+Serial.println("VC0706 Camera test");
+ 
+	//SD卡檢測
+	if (!SD.begin(chipSelect)) {
+		Serial.println("Card failed, or not present");
+		return;
+	} 
+	// 查詢攝影機
+	if (cam.begin()) {
+		Serial.println("Camera Found:");
+	} else {
+		Serial.println("No camera found?");
+		return;
+	}
+	// 攝影機版本編號
+	char *reply = cam.getVersion();
+	if (reply == 0) {
+		Serial.print("Failed to get version");
+	} else {
+		Serial.println("-----------------");
+		Serial.print(reply);
+		Serial.println("-----------------");
+	} 
+	// 選擇合適的圖片尺寸640x480, 320x240 or 160x120
+	// 圖片越大，傳送速率越慢
+	cam.setImageSize(VC0706_640x480);
+	//cam.setImageSize(VC0706_320x240);
+	//cam.setImageSize(VC0706_160x120); 
+	uint8_t imgsize = cam.getImageSize();
+	Serial.print("Image size: ");
+	if (imgsize == VC0706_640x480) Serial.println("640x480");
+	if (imgsize == VC0706_320x240) Serial.println("320x240");
+	if (imgsize == VC0706_160x120) Serial.println("160x120");
+	Serial.println("Get ready !"); 
+} 
+void loop() {
+ if(digitalRead(7)== 0) {       //按鍵檢測
+		delay(10);
+		if(digitalRead(7)== 0) {
+			if (! cam.takePicture())
+				Serial.println("Failed to snap!");
+			else
+				Serial.println("Picture taken!");
+			char filename[13];
+			strcpy(filename, "IMAGE00.JPG");
+			for (int i = 0; i < 100; i++) {
+				filename[5] = '0' + i/10;
+				filename[6] = '0' + i%10;
+				// create if does not exist, do not open existing, write, sync after write
+				if (! SD.exists(filename)) {
+					break;
+				}
+			}
+			File imgFile = SD.open(filename, FILE_WRITE);
+			uint16_t jpglen = cam.frameLength();
+			Serial.print(jpglen, DEC);
+			Serial.println(" byte image");
+ 
+			Serial.print("Writing image to ");
+			Serial.print(filename);
+ 
+			while (jpglen > 0) {
+				// 一次讀取32bytes
+				uint8_t *buffer;
+				uint8_t bytesToRead =  min(32, jpglen); 
+// 調節一次性讀取資料大小，從32-64byte ，過大容易不工作
+				buffer = cam.readPicture(bytesToRead);
+				imgFile.write(buffer, bytesToRead);
+				jpglen -= bytesToRead;
+			}
+			imgFile.close();
+			Serial.println("...Done!");
+	        cam.resumeVideo();
+		}
+	}
+}
+
+第8章Arduino顯示控制
+8.1 LED
+int led = 13;  //定義
+void setup()  //每當按下reset，setup()會重新執行一次：
+{         
+  pinMode(led, OUTPUT);   //初始化數位接腳，使其為輸出狀態。
+}        
+void loop() 
+{                       // 循環部分會一直執行下去：
+ digitalWrite(led, HIGH);  //使LED亮
+ delay(1000);        //持續1秒鐘
+ digitalWrite(led, LOW);   //使LED滅
+ delay(1000);        //持續1秒鐘
+   }
+
+8.2 數位管
+/*數位管循環顯示0,1,2幾個數字*/
+void setup() {  
+  pinMode(13,OUTPUT);     //使用13號接腳供電
+  for(int n=2;n<=9;n++)
+   {
+    pinMode(n,OUTPUT);
+   }
+} 
+void loop()               //循環執行的部分
+{
+digitalWrite(13,1);         // 0代表LOW，1代表HIGH
+ 
+/*==========顯示0字元=============*/  
+int n0[8]={0,0,0,0,0,0,1,1};  //定義陣列，透過0，1定義各數位管的明滅，使其顯示0
+  int z=0;				//每個數位管的編號請查閱資料
+  for(int x=2;x<=9;x++)    //採用循環方式依次點亮指定的LED（陣列中0為點亮），單位時間內只點亮1個LED，透過快速閃爍和視覺暫留效應使數字穩定顯示。
+  {
+    digitalWrite(x,n0[z]);   //點亮LED敘述，x為接腳數，n0[z]為陣列，z為0-8的變數，來依次讀取陣列中的值
+    z++;
+    if (z>=9)             //防止變數z累加超過了8
+    z=0;
+  }
+  delay(1000);
+/*==========顯示1字元=============*/  
+int n1[8]={1,0,0,1,1,1,1,1};
+  z=0;
+  for(int x=2;x<=9;x++)
+  {
+    digitalWrite(x,n1[z]);
+    z++;
+    if (z>=9)
+    z=0;
+  }
+  delay(1000);
+/*==========顯示2=============*/  
+ int n2[8]={0,0,1,0,0,1,0,1};
+  z=0;
+  for(int x=2;x<=9;x++)
+  {
+    digitalWrite(x,n2[z]);
+    z++;
+    if (z>=9)
+    z=0;
+  } 
+delay(1000);  				//其他數字的表示，請讀者自行完成。
+}
+
+四位數位管的範例程式：
+這一段程式是四位數位管的連接測試程式，它會讓數位管顯示隨機的數字，並且即時更新。
+//設定陰極介面
+int a = 1; int b = 2; int c = 3; int d = 4; int e = 5; int f = 6; int g = 7; int p = 8; 
+//設定陽極介面
+int d4 = 9; int d3 = 10; int d2 = 11; int d1 = 12;
+//設定變數
+long n = 0; int x = 100;int del = 55; 
+//此處數值對時脈進行微調
+void setup()
+{
+  pinMode(d1, OUTPUT);  pinMode(d2, OUTPUT);  pinMode(d3, OUTPUT);
+  pinMode(d4, OUTPUT);  pinMode(a, OUTPUT);   pinMode(b, OUTPUT);
+  pinMode(c, OUTPUT);   pinMode(d, OUTPUT);   pinMode(e, OUTPUT);
+  pinMode(f, OUTPUT);   pinMode(g, OUTPUT);   pinMode(p, OUTPUT);
+} 
+void loop()
+{
+  clearLEDs(); pickDigit(1); pickNumber((n/x/1000)%10); delayMicroseconds(del);
+  clearLEDs(); pickDigit(2); pickNumber((n/x/100)%10);  delayMicroseconds(del);
+  clearLEDs(); pickDigit(3); dispDec(3); pickNumber((n/x/10)%10);
+  delayMicroseconds(del);
+  clearLEDs(); pickDigit(4); pickNumber(n/x%10); delayMicroseconds(del); 
+  n++;
+  if (digitalRead(13) == LOW)
+  {
+    n = 0;
+  }
+} 
+void pickDigit(int x)  //定義pickDigit(x),其作用是開啟dx通訊埠
+{
+  digitalWrite(d1, HIGH); digitalWrite(d2, HIGH); 
+digitalWrite(d3, HIGH);  digitalWrite(d4, HIGH); 
+  switch(x)
+  {
+  case 1: digitalWrite(d1, LOW); break;
+  case 2: digitalWrite(d2, LOW); break;
+  case 3: digitalWrite(d3, LOW); break;
+  default: digitalWrite(d4, LOW); break;
+  }
+} 
+void pickNumber(int x)   //定義pickNumber(x),其作用是顯示數字x
+{
+  switch(x)
+  {
+  default: zero(); break;
+  case 1: one(); break;
+  case 2: two();break;
+  case 3: three(); break;
+  case 4: four(); break;
+  case 5: five(); break;
+  case 6: six(); break;
+  case 7: seven(); break;
+  case 8: eight(); break;
+  case 9: nine(); break;
+  }
+} 
+void dispDec(int x)  //設定開啟小數點
+{
+  digitalWrite(p,HIGH);
+} 
+void clearLEDs()  //清除螢幕
+{
+  digitalWrite(a, LOW);  digitalWrite(b, LOW);  digitalWrite(c, LOW);
+  digitalWrite(d, LOW);  digitalWrite(e, LOW);  digitalWrite(f, LOW);
+  digitalWrite(g, LOW);  digitalWrite(p,LOW);
+}
+ 
+void zero()  //定義數字0時陰極那些管腳開關
+{
+  digitalWrite(a, HIGH);  digitalWrite(b, HIGH);  digitalWrite(c, HIGH);
+  digitalWrite(d, HIGH);  digitalWrite(e, HIGH);  digitalWrite(f, HIGH);
+  digitalWrite(g, LOW);
+} 
+void one()  //定義數字1時陰極那些管腳開關
+{
+  digitalWrite(a, LOW);  digitalWrite(b,HIGH);  digitalWrite(c,HIGH);
+  digitalWrite(d, LOW);  digitalWrite(e, LOW);  digitalWrite(f, LOW);
+  digitalWrite(g, LOW);
+} 
+void two()  //定義數字2時陰極那些管腳開關
+{
+  digitalWrite(a, HIGH);  digitalWrite(b, HIGH);  digitalWrite(c, LOW);
+  digitalWrite(d,HIGH);  digitalWrite(e, HIGH);  digitalWrite(f, LOW);
+  digitalWrite(g, HIGH);
+} 
+void three()  //定義數字3時陰極那些管腳開關
+{
+  digitalWrite(a, HIGH);  digitalWrite(b,HIGH);  digitalWrite(c,HIGH);
+  digitalWrite(d, HIGH);  digitalWrite(e, LOW);  digitalWrite(f, LOW);
+  digitalWrite(g,HIGH);
+} 
+void four()  //定義數字4時陰極那些管腳開關
+{
+  digitalWrite(a, LOW);  digitalWrite(b,HIGH);  digitalWrite(c, HIGH);
+  digitalWrite(d, LOW);  digitalWrite(e,LOW);  digitalWrite(f, HIGH);
+  digitalWrite(g,HIGH);
+} 
+void five()  //定義數字5時陰極那些管腳開關
+{
+  digitalWrite(a, HIGH);  digitalWrite(b, LOW);  digitalWrite(c, HIGH);
+  digitalWrite(d,HIGH);  digitalWrite(e, HIGH);  digitalWrite(f, HIGH);
+  digitalWrite(g,HIGH);
+} 
+void six()  //定義數字6時陰極那些管腳開關
+{
+  digitalWrite(a,HIGH);  digitalWrite(b,LOW);  digitalWrite(c,HIGH);
+  digitalWrite(d, HIGH);  digitalWrite(e, HIGH);  digitalWrite(f, HIGH);
+  digitalWrite(g, HIGH);
+} 
+void seven()  //定義數字7時陰極那些管腳開關
+{
+  digitalWrite(a, HIGH);  digitalWrite(b, HIGH);  digitalWrite(c,HIGH);
+  digitalWrite(d,LOW);  digitalWrite(e,LOW);  digitalWrite(f, LOW);
+  digitalWrite(g,LOW);
+} 
+void eight()  //定義數字8時陰極那些管腳開關
+{
+  digitalWrite(a,HIGH);  digitalWrite(b, HIGH);  digitalWrite(c, HIGH);
+  digitalWrite(d, HIGH);  digitalWrite(e,HIGH);  digitalWrite(f,HIGH);
+  digitalWrite(g, HIGH);
+} 
+void nine()  //定義數字9時陰極那些管腳開關
+{
+  digitalWrite(a, HIGH);  digitalWrite(b,HIGH);  digitalWrite(c, HIGH);
+  digitalWrite(d, HIGH);  digitalWrite(e, LOW);  digitalWrite(f, HIGH);
+  digitalWrite(g, HIGH);
+}
+
+8.3 點陣
+本常式程式使用X-Y輸入行列掃描一個8x8LED點陣，透過使用兩個類比輸入控制一個8x8點陣，輸入座標值，在特定位置點亮LED，其中行是陽極，列是陰極。
+const int row[8] = { 2,7,19,5,13,18,12,16 };//定義陣列儲存行管腳號
+const int col[8] = { 6,11,10,3,17,4,8,9  };  //定義陣列儲存列管腳號
+int pixels[8][8];  //定義二維陣列儲存點的座標
+int x = 5;                            //初始游標位置
+int y = 5;
+void setup() {                        //初始化I/O管腳來輸出，檢查點亮管腳
+  for (int thisPin = 0; thisPin < 8; thisPin++)   //初始化輸出管腳
+  {  
+ pinMode(col[thisPin], OUTPUT); 
+pinMode(row[thisPin], OUTPUT);  
+digitalWrite(col[thisPin], HIGH);   //給列管腳（陰極）高電位保障LED是熄滅狀態。
+ }
+  for (int x = 0; x < 8; x++)          //初始化座標點陣：
+  {
+  for (int y = 0; y < 8; y++) {
+   pixels[x][y] = HIGH;
+  }
+ }
+}
+void loop()                    //讀取輸入
+{
+  readSensors(); refreshScreen(); //繪製點陣
+ }
+void readSensors()  
+{
+pixels[x][y] = HIGH;                  //關閉上一個亮的LED：
+x = 7 - map(analogRead(A0), 0, 1023, 0, 7); //從感測器讀取X-Y值
+y = map(analogRead(A1), 0, 1023, 0, 7); 
+pixels[x][y] = LOW;               //將該座標置於低電位在下次更新時LED就會點亮
+}
+void refreshScreen() 
+{
+  for (int thisRow = 0; thisRow < 8; thisRow++)  //檢查行（陽極）
+    {
+    digitalWrite(row[thisRow], HIGH);      //讓行管腳置於高電位
+    for (int thisCol = 0; thisCol < 8; thisCol++)  //檢查列（陰極）：
+      {   
+   int thisPixel = pixels[thisRow][thisCol];  //取得目前位置的狀態；
+    digitalWrite(col[thisCol], thisPixel);     //當行是高電位而列是低電位時對應LED   
+就會點亮
+      if (thisPixel == LOW)             //將該位置關閉：
+          {
+    digitalWrite(col[thisCol], HIGH);
+   }
+  }
+    digitalWrite(row[thisRow], LOW); //將行管腳置低電位關閉整行
+ }
+}
+8.4 液晶LCD
+八位連接方法的範例：下面這段程式，使用的是八位連接的方法，讓LCD顯示設定的內容。
+int DI = 12;
+int RW = 11;
+int DB[] = {3, 4, 5, 6, 7, 8, 9, 10};//使用陣列來定義匯流排需要的管腳
+int Enable = 2; 
+void LcdCommandWrite(int value) {	  // 定義所有接腳
+ int i = 0;
+ for (i=DB[0]; i <= DI; i++)           //給匯流排設定值
+{
+   digitalWrite(i,value & 01);//1602液晶訊號識別是D7-D0(不是D0-D7)，
+這裡是用來反轉訊號。
+   value >>= 1;
+ }
+ digitalWrite(Enable,LOW);  //對管腳初始化
+ delayMicroseconds(1);
+ digitalWrite(Enable,HIGH);
+ delayMicroseconds(1);  // 延遲時間1ms
+ digitalWrite(Enable,LOW);
+ delayMicroseconds(1);  // 延遲時間1ms
+} 
+void LcdDataWrite(int value) {	// 定義所有接腳
+ int i = 0;
+ digitalWrite(DI, HIGH);
+ digitalWrite(RW, LOW);
+ for (i=DB[0]; i <= DB[7]; i++) {
+   digitalWrite(i,value & 01);
+   value >>= 1;
+ }
+ digitalWrite(Enable,LOW);
+ delayMicroseconds(1);
+ digitalWrite(Enable,HIGH);
+ delayMicroseconds(1);
+ digitalWrite(Enable,LOW);
+ delayMicroseconds(1);  // 延遲時間1ms
+}
+ 
+void setup (void) {
+ int i = 0;
+ for (i=Enable; i <= DI; i++) {
+   pinMode(i,OUTPUT);
+ }
+ delay(100);              // 短暫的停頓後初始化LCD ，用於LCD控制需要
+ LcdCommandWrite(0x38);  // 設定為8-bit介面，2行顯示，5x7文字大小
+ delay(64);                      
+ LcdCommandWrite(0x38);  // 設定為8-bit介面，2行顯示，5x7文字大小
+ delay(50);                      
+ LcdCommandWrite(0x38);  // 設定為8-bit介面，2行顯示，5x7文字大小
+ delay(20);                      
+ LcdCommandWrite(0x06);  // 輸入方式設定，自動增量，沒有顯示移位元
+ delay(20);                      
+ LcdCommandWrite(0x0E);  // 顯示設定，開啟顯示幕，游標顯示，無閃爍
+ delay(20);                      
+ LcdCommandWrite(0x01);  // 螢幕清空，游標位置歸零
+ delay(100);                      
+ LcdCommandWrite(0x80);  // 顯示設定，開啟顯示幕，游標顯示，無閃爍
+ delay(20);                      
+}
+ 
+void loop (void) {
+  LcdCommandWrite(0x01);  // 螢幕清空，游標位置歸零
+  delay(10); 
+  LcdCommandWrite(0x80+3); 
+  delay(10);                     
+                                               // 寫入歡迎資訊
+  LcdDataWrite('W');   LcdDataWrite('e');  LcdDataWrite('l');  LcdDataWrite('c');
+  LcdDataWrite('o');  LcdDataWrite('m');  LcdDataWrite('e');  LcdDataWrite(' ');
+  LcdDataWrite('t');  LcdDataWrite('o'); delay(10);
+  LcdCommandWrite(0xc0+1);  // 定義游標位置為第二行第二個位置
+  delay(10); 
+  LcdDataWrite('A');  LcdDataWrite('r');  LcdDataWrite('d');  LcdDataWrite('u');
+  LcdDataWrite('i');  LcdDataWrite('n');LcdDataWrite('o');  LcdDataWrite('W');
+  LcdDataWrite('o');  LcdDataWrite('r');  LcdDataWrite('l');  LcdDataWrite('d');
+  delay(5000);
+  LcdCommandWrite(0x01);  // 螢幕清空，游標位置歸零
+  delay(10);
+  LcdDataWrite('H');  LcdDataWrite('E');  LcdDataWrite('L');  LcdDataWrite('L');
+  LcdDataWrite('O');  LcdDataWrite(' ');  LcdDataWrite('W');  LcdDataWrite('o');
+  LcdDataWrite('r');  LcdDataWrite('l');  LcdDataWrite('d');
+  delay(3000);
+  LcdCommandWrite(0x02); //設定模式為新文字取代老文字，無新文字的地方顯示不變。
+  delay(10);
+  LcdCommandWrite(0x80+6); //定義游標位置為第一行第七個位置
+  delay(10);  
+  LcdDataWrite('e');  LcdDataWrite('v');  LcdDataWrite('e');  LcdDataWrite('r');
+  LcdDataWrite('y');  LcdDataWrite('o');  LcdDataWrite('n');  LcdDataWrite('e');
+  delay(5000);
+}
+四位連接方法的範例：下面這段程式，使用的是四位連接的方法，讓LCD顯示設定的內容。
+
+int LCD1602_RS=12;   
+int LCD1602_RW=11;   
+int LCD1602_EN=10;   
+int DB[] = { 6, 7, 8, 9};
+char str1[]="Welcome to";
+char str2[]="Arduinoworld";
+char str3[]="Hello World ";
+char str4[]="Hello everyone"; 
+void LCD_Command_Write(int command)  //對控制管腳進行寫入以初始化
+{
+ int i,temp;
+ digitalWrite( LCD1602_RS,LOW);	//對管腳初始化
+ digitalWrite( LCD1602_RW,LOW);
+ digitalWrite( LCD1602_EN,LOW); 
+ temp=command & 0xf0;
+ for (i=DB[0]; i <= 9; i++)
+ {
+   digitalWrite(i,temp & 0x80);
+   temp <<= 1;
+ } 
+ digitalWrite( LCD1602_EN,HIGH);
+ delayMicroseconds(1);
+ digitalWrite( LCD1602_EN,LOW); 
+ temp=(command & 0x0f)<<4;
+ for (i=DB[0]; i <= 9; i++)
+ {
+   digitalWrite(i,temp & 0x80);
+   temp <<= 1;
+ }
+ digitalWrite( LCD1602_EN,HIGH);
+ delayMicroseconds(1); 
+ digitalWrite( LCD1602_EN,LOW);
+} 
+void LCD_Data_Write(int dat)
+{
+ int i=0,temp;
+ digitalWrite( LCD1602_RS,HIGH);
+ digitalWrite( LCD1602_RW,LOW);
+ digitalWrite( LCD1602_EN,LOW); 
+ temp=dat & 0xf0;
+ for (i=DB[0]; i <= 9; i++)
+ {
+   digitalWrite(i,temp & 0x80);
+   temp <<= 1;
+ } 
+ digitalWrite( LCD1602_EN,HIGH);
+ delayMicroseconds(1);
+ digitalWrite( LCD1602_EN,LOW); 
+ temp=(dat & 0x0f)<<4;
+ for (i=DB[0]; i <= 9; i++)
+ {
+   digitalWrite(i,temp & 0x80);
+   temp <<= 1;
+ } 
+ digitalWrite( LCD1602_EN,HIGH);
+ delayMicroseconds(1); 
+ digitalWrite( LCD1602_EN,LOW);
+} 
+void LCD_SET_XY( int x, int y )
+{
+  int address;
+  if (y ==0)    address = 0x80 + x;
+  else          address = 0xC0 + x;
+  LCD_Command_Write(address); 
+} 
+void LCD_Write_Char( int x,int y,int dat)
+{
+  LCD_SET_XY( x, y ); 
+  LCD_Data_Write(dat);
+} 
+void LCD_Write_String(int X,int Y,char *s)
+{
+    LCD_SET_XY( X, Y );    //設定地址
+    while (*s)             //寫字串
+    {
+      LCD_Data_Write(*s);   
+      s ++;
+    }
+} 
+void setup (void) 
+{
+  int i = 0;
+  for (i=6; i <= 12; i++) 
+   {
+     pinMode(i,OUTPUT);
+   }
+  delay(100);
+  LCD_Command_Write(0x28);//4線2行5x7
+  delay(50); 
+  LCD_Command_Write(0x06);
+  delay(50); 
+  LCD_Command_Write(0x0c);
+  delay(50); 
+  LCD_Command_Write(0x80);
+  delay(50); 
+  LCD_Command_Write(0x01);
+  delay(50);  
+} 
+void loop (void)
+{
+   LCD_Command_Write(0x01);
+   delay(50);
+   LCD_Write_String(3,0,str1);//第1行，第4個地址起
+   delay(50);
+   LCD_Write_String(1,1,str2);//第2行，第2個地址起
+   delay(5000);
+   LCD_Command_Write(0x01);
+   delay(50);
+   LCD_Write_String(0,0,str3);
+   delay(50);
+   LCD_Write_String(0,1,str4);
+   delay(5000); 
+}
+
+第9章Arduino電流量控制制
+9.1 直流馬達 
+直流馬達轉動的範例：下面的程式實現的是最簡單的控制直流馬達轉動。
+void setup() 
+{	                                 //初始化管腳
+pinMode(3,OUTPUT);
+}
+void loop()
+{	                       //循環使直流馬達向正反兩方向旋轉
+digitalWrite(3,HIGH);
+delay(2000);
+digitalWrite(3,LOW);
+delay(2000);
+}
+
+改變直流馬達速度的範例：下面這段程式，是使直流馬達向正反兩個方向轉動，並逐漸加速之後減速。
+int motorPin = 3; //初始化管腳
+void setup() {	
+}
+void loop() {	//循環使直流馬達向正反兩方向旋轉
+for(int fadeValue = 0; fadeValue <= 255; fadeValue +=50){ //逐步增加電流值
+analogWrite(motorPin,fadeValue);
+delay(2000);
+}
+for(int fadeValue = 255; fadeValue >= 0; fadeValue -=50){ //逐步減少電流值
+analogWrite(motorPin,fadeValue);
+delay(2000);
+}
+}
+9.2 步進馬達 
+下面的程式是一個簡單的範例，只是控制著步進馬達隨著電位器旋轉。
+#include <Stepper.h> 
+#define STEPS 90                 // 這裡設定步進馬達旋轉一圈的步數
+Stepper stepper(STEPS, 8, 9, 10, 11);   // 設定步進馬達的步數和接腳
+int previous = 0;                    // 定義變數用來儲存歷史讀數
+void setup()
+{ 
+  stepper.setSpeed(90);              // 設定馬達每分鐘的轉速為90步
+} 
+void loop()
+{
+  int val = analogRead(0);          // 取得感測器讀數
+  stepper.step(val - previous);       // 移動步數為目前讀數減去歷史讀數
+  previous = val;                 // 儲存歷史讀數
+}  9.3 伺服
+本常式的程式是測試伺服是否可以旋轉。
+#include <Servo.h>  
+Servo myservo;  //建立伺服物件以控制一個伺服，最多可同時建立控制8個伺服
+int pos = 0;      //儲存伺服角度位置的變數
+void setup() 
+{ 
+  myservo.attach(9);   //將連接在9號管腳上的伺服與物件相連
+}    
+void loop() 
+{ 
+  for(pos = 0; pos < 180; pos += 1)      //從0度轉到180度，每次轉1度
+  {                                 
+    myservo.write(pos);              //指示伺服根據變數中儲存的數值旋轉
+    delay(15);                       //伺服每次旋轉合格後等待15毫秒
+  } 
+  for(pos = 180; pos>=1; pos-=1)      //從180度轉回到0度
+  {                                
+    myservo.write(pos);              
+    delay(15);                       
+  } 
+}
+
+9.4 繼電器
+下面的範例是使用繼電器控制LED的亮滅。
+int lsPin=13;       //定義數位檢測介面
+void setup()
+{
+  pinMode(lsPin,OUTPUT);      //設定數位介面13為輸入介面
+  Serial.begin(9600) ;            //設定序列埠串列傳輸速率為9600kbps
+}
+void loop()
+{
+digitalWrite(lsPin,HIGH);
+delay(1000);
+digitalWrite(lsPin,LOW);
+delay(1000);
+}
+
+第10章Arduino通訊控制
+10.1 SPI序列埠通訊
+#include <SPI.h>
+const int PRESSURE = 0x1F;  //記錄感測器註冊的位址，記錄3位元氣壓最重要的位元
+const int PRESSURE_LSB = 0x20;  //記錄16位元氣壓位元
+const int TEMPERATURE = 0x21;   //讀取16位元溫度
+const byte READ = 0b11111100;     //SCP1000的讀取指令
+const byte WRITE = 0b00000010;   //SCP1000的寫入指令
+const int dataReadyPin = 6;        //定義用於與感測器連接的管腳，並且初始化其函數庫
+const int chipSelectPin = 7;
+void setup() {
+  Serial.begin(9600); 
+  SPI.begin();                    //啟動SPI函數庫
+  pinMode(dataReadyPin, INPUT);   //初始化資料準備和晶片選擇管腳
+  pinMode(chipSelectPin, OUTPUT); 
+  writeRegister(0x02, 0x2D);        //設定SCP1000為低雜訊設定
+  writeRegister(0x01, 0x03);
+  writeRegister(0x03, 0x02);  
+  delay(100);                     //給感測器時間進行設定
+}
+void loop() { 
+  writeRegister(0x03, 0x0A);               //選擇高解析度模式
+  if (digitalRead(dataReadyPin) == HIGH) {  //在資料準備管腳為高之前不要做任何事
+    int tempData = readRegister(0x21, 2);    //讀取溫度資料
+    float realTemp = (float)tempData / 20.0;  //把溫度轉換成攝氏度並顯示
+    Serial.print("Temp[C]=");
+    Serial.print(realTemp);                  //顯示溫度
+    byte pressure_data_high = readRegister(0x1F, 1);  //讀取最高三位的壓力資料
+    pressure_data_high &= 0b00000111;         //只需要位元2到0位
+    unsigned int pressure_data_low = readRegister(0x20, 2); //讀取低16位元的壓力資料
+    long pressure = ((pressure_data_high << 16) | pressure_data_low)/4;  
+//把兩部分資料放到19位元的資料中
+    Serial.println("\tPressure [Pa]=" + String(pressure));
+  }
+}
+//從SCP1000讀取或寫入
+unsigned int readRegister(byte thisRegister, int bytesToRead ) {  
+  byte inByte = 0;                                     //從SPI的輸入資料
+  unsigned int result = 0;                               //傳回結果
+  Serial.print(thisRegister, BIN);
+  Serial.print("\t"); 
+  thisRegister = thisRegister << 2;   //記憶體高6位元讀取註冊名稱，向左移動兩位元
+  byte dataToSend = thisRegister & READ; //將位址和指令整合進一個位元組中
+  Serial.println(thisRegister, BIN); 
+  digitalWrite(chipSelectPin, LOW);      //讓晶片置低位元去選擇裝置
+  SPI.transfer(dataToSend);            //向記憶體發送我們所需要讀取的裝置
+  result = SPI.transfer(0x00);           //發送值0以讀取傳回的第一個位元組
+  bytesToRead--;                     //縮減位元組數目以讀取
+  if (bytesToRead > 0) {               //如果還要讀取另一個資料
+    result = result << 8;             //將第一個位元組向左取代，取得第二個位元組資料
+    inByte = SPI.transfer(0x00);   
+    result = result | inByte;           //將剛獲得的位元組與之前一個位元組結合
+    bytesToRead--;                 //縮減位元組數目以讀取
+  } 
+  digitalWrite(chipSelectPin, HIGH);   //將晶片選擇置高位以反選
+  return(result);                     //傳回結果
+}
+//向SCP1000發送寫指令
+void writeRegister(byte thisRegister, byte thisValue) {
+  thisRegister = thisRegister << 2;
+  byte dataToSend = thisRegister | WRITE;
+  digitalWrite(chipSelectPin, LOW);
+  SPI.transfer(dataToSend);                         //發送記憶體位置
+  SPI.transfer(thisValue);                           //向記憶體發送值
+  digitalWrite(chipSelectPin, HIGH);
+}
+
+2、SPI序列埠控制數字分壓計的範例程式：
+下面的程式是使用SPI序列埠控制AD5206數字分壓計的範例。數位通訊埠控制AD5206數字分壓計。AD5206有6個分壓通道。每一個通道管腳都被標記了以下分類：A - 連接至電源，W - 擦拭器，每當設定的時候就會改變，B - 連接至地，AD5206是SPI序列埠轉換的，若要控制它，需要發送兩位元組的訊號，一個是通道號碼（0-5），另一個為通道所賦的值（0-255）。常式要包含所需的函數庫檔案。
+#include <SPI.h>
+const int slaveSelectPin = 10;           //將10管腳設定為數字管腳的選擇項
+void setup() { 
+  pinMode (slaveSelectPin, OUTPUT);   //將slaveSelectPin設為輸出
+  SPI.begin();//初始化SPI
+}
+void loop() {
+ 
+  for (int channel = 0; channel < 6; channel++) {      //檢查所有6個通道的數位介面
+    for (int level = 0; level < 255; level++) {         //將設定值從最小到最大依次改變
+      digitalPotWrite(channel, level);
+      delay(10);
+    }
+   
+    delay(100);                                //在頂層等待
+    for (int level = 0; level < 255; level++) {         //將設定值從最大到最小依次改變
+      digitalPotWrite(channel, 255 - level);
+      delay(10);
+    }
+  }
+}
+
+void digitalPotWrite(int address, int value) { 
+  digitalWrite(slaveSelectPin,LOW); //將SS管腳置低電位以選擇晶片
+  SPI.transfer(address); //透過SPI發送地址和值
+  SPI.transfer(value);
+  digitalWrite(slaveSelectPin,HIGH);  //將SS管腳置高電位以反選晶片
+}
+10.2 紅外線通訊
+1. 顯示紅外編碼的範例程式：
+下面實例是使紅外接收模組接受訊號，並在PC端的控制序列埠顯示接受資訊（即紅外遙控器的編碼）。本例來自紅外接收模組的IRremote附帶範例。
+    #include <IRremote.h>     //包含遙控器所需要的函數庫
+    int RECV_PIN = 11;       //定義紅外接收器的接腳為11
+    IRrecv irrecv(RECV_PIN);
+    decode_results results;     
+    void setup()
+    {
+      Serial.begin(9600);
+      irrecv.enableIRIn();                  // 初始化紅外接收器
+    }     
+    void loop() {
+      if (irrecv.decode(&results)) {
+        Serial.println(results.value, HEX);     //以16進位換行輸出接收程式
+        Serial.println();                   //為了便於觀看輸出結果增加一個空行
+        irrecv.resume();                   // 接收下一個值
+      }
+    }
+2. 使用紅外線控制LED燈的範例程式：
+下面範例透過紅外線控制LED燈的亮滅，本例來自紅外接收模組的IRremote附帶範例，已經作出了修改，電路連接,按鍵1點亮LED,按鍵2關閉LED。
+    #include <IRremote.h>     
+    int RECV_PIN = 11;                 //定義紅外接收器的接腳為11
+    int LED_PIN=3;                    //定義發光LED接腳數字3
+    IRrecv irrecv(RECV_PIN);     
+    decode_results results;     
+    void setup()
+    {
+      Serial.begin(9600);
+      irrecv.enableIRIn();                  // 初始化紅外接收器
+      pinMode(LED_PIN,OUTPUT);         //設定發光LED接腳數字3
+    }     
+    void loop() {
+      if (irrecv.decode(&results))
+      {
+        if (results.value==16724175)         //接收按鍵1的編碼，此碼是預先讀出來
+        {
+        Serial.println(results.value, HEX);      //以16進位換行輸出接收程式
+        Serial.println();                     //為了便於觀看輸出結果增加一個空行
+        digitalWrite(LED_PIN,HIGH);         //LED點亮
+        Serial.println("點亮發光二極體tun on LED: ");    //序列埠顯示開燈
+        }
+        else if (results.value==16718055)        //接收到按鍵2的編碼
+        {     
+         digitalWrite(LED_PIN,LOW);          //LED熄滅
+         Serial.println(results.value, HEX);       //以16進位換行輸出接收程式
+         Serial.println();                  //為了便於觀看輸出結果增加一個空行
+         Serial.println("關發光二極體tun off LED: ");      //序列埠顯示關燈
+        }
+        irrecv.resume();                        // 接收下一個值
+      }
+}
+10.3 RFID通訊
+本常式程式實現RFID的基本功能，其他應用還請讀者嘗試。
+#include <RFID.h> 
+#include <SPI.h> 
+#define uchar unsigned char
+#define uint unsigned int 
+#define MAX_LEN 16                //資料陣列最大長度
+const int chipSelectPin = 10;            //設定管腳
+const int NRSTPD = 5; 
+//MF522指令
+#define PCD_IDLE 0x00 //無動作；取消目前指令
+#define PCD_AUTHENT 0x0E //確定金鑰
+#define PCD_RECEIVE 0x08 //接收資料
+#define PCD_TRANSMIT 0x04 //發送資料
+#define PCD_TRANSCEIVE 0x0C //發送和接收資料
+#define PCD_RESETPHASE 0x0F //重置
+#define PCD_CALCCRC 0x03 //CRC檢查與計算
+ 
+//Mifare_One卡指令
+#define PICC_REQIDL 0x26 //不處於睡眠模式的時候在天線區域內搜索卡
+#define PICC_REQALL 0x52 //在天線區域內搜索所有卡
+#define PICC_ANTICOLL 0x93 //防衝突
+#define PICC_SElECTTAG 0x93 //選擇卡
+#define PICC_AUTHENT1A 0x60 //確定金鑰A
+#define PICC_AUTHENT1B 0x61 //確定金鑰B
+#define PICC_READ 0x30 //讀
+#define PICC_WRITE 0xA0 //寫
+#define PICC_DECREMENT 0xC0 //縮減數值
+#define PICC_INCREMENT 0xC1 //增加數值
+#define PICC_RESTORE 0xC2 //向緩衝器恢復資料
+#define PICC_TRANSFER 0xB0 //儲存資料到緩衝器
+#define PICC_HALT 0x50 //睡眠模式
+//傳回錯誤程式
+#define MI_OK 0
+#define MI_NOTAGERR 1
+#define MI_ERR 2
+//------------------MFRC522註冊器---------------
+#define Reserved000x00 
+#define CommandReg 0x01 
+#define CommIEnReg 0x02 
+#define DivlEnReg 0x03 
+#define CommIrqReg 0x04 
+#define DivIrqReg 0x05
+#define ErrorReg 0x06 
+#define Status1Reg 0x07 
+#define Status2Reg 0x08 
+#define FIFODataReg 0x09
+#define FIFOLevelReg 0x0A
+#define WaterLevelReg 0x0B
+#define ControlReg 0x0C
+#define BitFramingReg 0x0D
+#define CollReg 0x0E
+#define Reserved010x0F
+//以上為指令
+#define Reserved100x10
+#define ModeReg 0x11
+#define TxModeReg 0x12
+#define RxModeReg 0x13
+#define TxControlReg 0x14
+#define TxAutoReg 0x15
+#define TxSelReg 0x16
+#define RxSelReg 0x17
+#define RxThresholdReg 0x18
+#define DemodReg 0x19
+#define Reserved110x1A
+#define Reserved120x1B
+#define MifareReg 0x1C
+#define Reserved130x1D
+#define Reserved140x1E
+#define SerialSpeedReg 0x1F
+//以上為CFG 
+#define Reserved200x20 
+#define CRCResultRegM 0x21
+#define CRCResultRegL 0x22
+#define Reserved210x23
+#define ModWidthReg 0x24
+#define Reserved220x25
+#define RFCfgReg 0x26
+#define GsNReg 0x27
+#define CWGsPReg 0x28
+#define ModGsPReg 0x29
+#define TModeReg 0x2A
+#define TPrescalerReg 0x2B
+#define TReloadRegH 0x2C
+#define TReloadRegL 0x2D
+#define TCounterValueRegH 0x2E
+#define TCounterValueRegL 0x2F
+//以上為測試註冊
+#define Reserved300x30
+#define TestSel1Reg 0x31
+#define TestSel2Reg 0x32
+#define TestPinEnReg 0x33
+#define TestPinValueReg 0x34
+#define TestBusReg 0x35
+#define AutoTestReg 0x36
+#define VersionReg 0x37
+#define AnalogTestReg 0x38
+#define TestDAC1Reg 0x39 
+#define TestDAC2Reg 0x3A 
+#define TestADCReg 0x3B 
+#define Reserved310x3C 
+#define Reserved320x3D 
+#define Reserved330x3E 
+#define Reserved340x3F
+//以上是預先定義，以下是程式
+ //4位元組數字為卡號，第五個位元組是辨識位元組
+uchar serNum[5]; 
+void setup() 
+{ 
+    Serial.begin(57600);      
+    SPI.begin();     
+    pinMode(chipSelectPin,OUTPUT); //10號數字管腳設定為輸出連接RFID/啟動管腳
+    digitalWrite(chipSelectPin, LOW); //啟動RFID讀取器
+    pinMode(NRSTPD,OUTPUT); //把5號數字管腳設定為非重置與關閉電源
+    MFRC522_Init(); 
+}
+void loop()
+{ 
+    uchar status;
+    uchar str[MAX_LEN];     
+                                 //尋找卡片，傳回卡片類型
+    status = MFRC522_Request(PICC_REQIDL, str); 
+    if (status != MI_OK)
+    {
+        return;
+    }     
+                                  //顯示卡片類型
+    ShowCardType(str);     
+                                   //為了防止衝突，傳回卡片的4位元組序列碼
+    status = MFRC522_Anticoll(str);     
+                                   // str[0..3]:卡片的序列碼
+                                   // str[4]: SN碼的互斥檢查碼
+    if (status == MI_OK)
+    {
+        Serial.print("The card's number is: ");
+        memcpy(serNum, str, 5);
+        ShowCardID(serNum);     
+                                    //檢查與卡片ID相連結的人物
+        uchar* id = serNum;
+        if( id[0]==0x4B && id[1]==0xE6 && id[2]==0xD1 && id[3]==0x3B ) {
+            Serial.println("Hello Mary!");
+        } else if(id[0]==0x3B && id[1]==0xE6 && id[2]==0xD1 && id[3]==0x3B) {
+            Serial.println("Hello Greg!");
+        }else{
+            Serial.println("Hello unkown guy!");
+        }
+    }    
+    MFRC522_Halt(); //指令卡片進入睡眠模式
+    delay(200);
+}
+/*模組：顯示卡片ID，描述：顯示卡片ID，輸入參數：ID字串，傳回：無*/
+void ShowCardID(uchar *id)
+{
+    int IDlen=4;
+    for(int i=0; i<IDlen; i++){
+        Serial.print(0x0F & (id[i]>>4), HEX);
+        Serial.print(0x0F & id[i],HEX);
+    }
+    Serial.println("");
+} 
+/*模組：顯示卡片類型，描述：顯示卡片類型，輸入參數：字串，傳回：無*/
+void ShowCardType(uchar* type)
+{
+    Serial.print("Card type: ");
+    if(type[0]==0x04&&type[1]==0x00) 
+        Serial.println("MFOne-S50");
+    else if(type[0]==0x02&&type[1]==0x00)
+        Serial.println("MFOne-S70");
+    else if(type[0]==0x44&&type[1]==0x00)
+        Serial.println("MF-UltraLight");
+    else if(type[0]==0x08&&type[1]==0x00)
+        Serial.println("MF-Pro");
+    else if(type[0]==0x44&&type[1]==0x03)
+        Serial.println("MF Desire");
+    else
+        Serial.println("Unknown");
+} 
+/*模組：寫入MFRC5200，描述：向MF RC522的暫存器寫入1位元組的資料，輸入參數：addr—暫存器地址；val—需要寫入的值，傳回：無*/
+void Write_MFRC522(uchar addr, uchar val)
+{
+    digitalWrite(chipSelectPin, LOW);    
+    SPI.transfer((addr<<1)&0x7E); //地址格式：0XXXXXX0
+    SPI.transfer(val);     
+    digitalWrite(chipSelectPin, HIGH);
+} 
+/** 模組：讀取MFRC5200，描述：從MF RC522的暫存器讀取1位元組的資料，輸入參數：addr—暫存器地址，傳回：傳回讀設定值*/
+uchar Read_MFRC522(uchar addr)
+{
+    uchar val; 
+    digitalWrite(chipSelectPin, LOW);   
+    SPI.transfer(((addr<<1)&0x7E) | 0x80);  //地址格式：1XXXXXX0
+    val =SPI.transfer(0x00);     
+    digitalWrite(chipSelectPin, HIGH);     
+    return val; 
+} 
+/*模組：設定位元掩飾，描述：設定RC522暫存器位元，輸入參數：reg—暫存器地址；mask—值，傳回：無*/
+void SetBitMask(uchar reg, uchar mask) 
+{
+    uchar tmp;
+    tmp = Read_MFRC522(reg);
+    Write_MFRC522(reg, tmp | mask);
+}
+ /** 模組：清除位元隱藏，描述：清除RC522暫存器位元，輸入參數：reg—暫存器地址；mask—值，傳回：無*/
+void ClearBitMask(uchar reg, uchar mask) 
+{
+    uchar tmp;
+    tmp = Read_MFRC522(reg);
+    Write_MFRC522(reg, tmp & (~mask)); 
+} 
+ /** 模組：開啟天線，描述：開啟天線，每一次開啟或是關閉天線需要至少一秒的延遲，輸入參數：無，傳回：無*/
+void AntennaOn(void)
+{
+    uchar temp; 
+    temp = Read_MFRC522(TxControlReg);
+    if (!(temp & 0x03))
+    {
+        SetBitMask(TxControlReg, 0x03);
+    }
+}
+ /*模組：關閉天線，描述：關閉天線，每一次開啟或是關閉天線需要至少一秒的延遲，輸入參數：無，傳回：無*/
+void AntennaOff(void)
+{
+    ClearBitMask(TxControlReg, 0x03);
+}
+ /*模組：重置MFRC522，描述：重置MFRC522，輸入參數：無，傳回：無*/
+void MFRC522_Reset(void)
+{
+    Write_MFRC522(CommandReg, PCD_RESETPHASE);
+}
+/*模組：重置MFRC522，描述：重置MFRC522，輸入參數：無，傳回：無*/
+void MFRC522_Init(void)
+{
+    digitalWrite(NRSTPD,HIGH); 
+    MFRC522_Reset();          
+                                 //計時器: TPrescaler*TreloadVal/6.78MHz = 24ms
+    Write_MFRC522(TModeReg, 0x8D);
+    Write_MFRC522(TPrescalerReg, 0x3E); 
+    Write_MFRC522(TReloadRegL, 30); 
+    Write_MFRC522(TReloadRegH, 0);     
+    Write_MFRC522(TxAutoReg, 0x40); //100%詢問
+    Write_MFRC522(ModeReg, 0x3D); //CRC 初始化數值
+    AntennaOn(); //開啟天線
+}
+ /*模組：請求MFRC522，描述：尋找卡片，讀取卡片類型，輸入參數：reqMode—搜尋方式，TagType—傳回卡片類型（0x4400 = Mifare_UltraLight，0x0400 = Mifare_One(S50)，0x0200 = Mifare_One(S70)，0x0800 = Mifare_Pro(X)，0x4403 = Mifare_DESFire），傳回：當成功時傳回MI_PK*/
+uchar MFRC522_Request(uchar reqMode, uchar *TagType)
+{
+    uchar status; 
+    uint backBits; //接收的資料
+    Write_MFRC522(BitFramingReg, 0x07);      
+    TagType[0] = reqMode;
+    status = MFRC522_ToCard(PCD_TRANSCEIVE, TagType, 1, TagType, &backBits); 
+    if ((status != MI_OK) || (backBits != 0x10))
+    { 
+        status = MI_ERR;
+    }    
+    return status;
+}
+ /*模組：從MFRC522到卡片，描述：進行在MFRC522和ISO14443之間的通訊，輸入參數：command--MF522指令位元，sendData—透過rc522向卡片發送資料，sendLen—發送資料長度，backData—從卡片傳回資料，backLen—傳回資料證明，傳回：當成功時傳回MI_PK */
+uchar MFRC522_ToCard(uchar command, uchar *sendData, uchar sendLen, uchar *backData, uint *backLen)
+{
+    uchar status = MI_ERR;
+    uchar irqEn = 0x00;
+    uchar waitIRq = 0x00;
+    uchar lastBits;
+    uchar n;
+    uint i; 
+    switch (command)
+    {
+        case PCD_AUTHENT: //分辨卡片密碼
+        {
+            irqEn = 0x12;
+            waitIRq = 0x10;
+            break;
+        }
+        case PCD_TRANSCEIVE: //發送在FIFO中的資料
+        {
+            irqEn = 0x77;
+            waitIRq = 0x30;
+            break;
+        }
+        default:
+            break;
+    }
+    
+    Write_MFRC522(CommIEnReg, irqEn|0x80); //允許中斷
+    ClearBitMask(CommIrqReg, 0x80); //清除所有中斷位元
+    SetBitMask(FIFOLevelReg, 0x80); //FlushBuffer=1, FIFO初始化
+    Write_MFRC522(CommandReg, PCD_IDLE); //沒有操作;取消目前指令
+                                          //向FIFO寫入資料
+    for (i=0; i<sendLen; i++)
+    { 
+        Write_MFRC522(FIFODataReg, sendData[i]); 
+    } 
+    Write_MFRC522(CommandReg, command);
+    if (command == PCD_TRANSCEIVE)
+    { 
+        SetBitMask(BitFramingReg, 0x80); //StartSend=1時,開始資料的傳輸
+    }      
+                                           //等待資料接收的結束
+    i = 2000; //i的值應該透過時脈進行校準，最大等待時間應該是25ms
+    do
+    {
+        n = Read_MFRC522(CommIrqReg);
+        i--;
+    }
+    while ((i!=0) && !(n&0x01) && !(n&waitIRq)); 
+    ClearBitMask(BitFramingReg, 0x80);     
+    if (i != 0)
+    { 
+        if(!(Read_MFRC522(ErrorReg) & 0x1B)) 
+        {
+            status = MI_OK;
+            if (n & irqEn & 0x01)
+            { 
+                status = MI_NOTAGERR; 
+            }             
+            if (command == PCD_TRANSCEIVE)
+            {
+                n = Read_MFRC522(FIFOLevelReg);
+                lastBits = Read_MFRC522(ControlReg) & 0x07;
+                if (lastBits)
+                { 
+                    *backLen = (n-1)*8 + lastBits; 
+                }
+                else
+                { 
+                    *backLen = n*8; 
+                }                 
+                if (n == 0)
+                { 
+                    n = 1; 
+                }
+                if (n > MAX_LEN)
+                { 
+                    n = MAX_LEN; 
+                }                 
+                                                   //從FIFO中讀取資料
+                for (i=0; i<n; i++)
+                { 
+                    backData[i] = Read_MFRC522(FIFODataReg); 
+                }
+            }
+        }
+        else
+        { 
+            status = MI_ERR; 
+        }
+         
+    }
+    return status;
+}
+ /*模組：MFRC522防重疊，描述：防止衝突，讀取卡片的序號，輸入參數：serNum—傳回4位元組的開篇序號,第5個位元組是驗證位元組，傳回：當成功時傳回MI_PK */
+uchar MFRC522_Anticoll(uchar *serNum)
+{
+    uchar status;
+    uchar i;
+    uchar serNumCheck=0;
+    uint unLen;     
+    Write_MFRC522(BitFramingReg, 0x00);   
+    serNum[0] = PICC_ANTICOLL;
+    serNum[1] = 0x20;
+    status = MFRC522_ToCard(PCD_TRANSCEIVE, serNum, 2, serNum, &unLen); 
+    if (status == MI_OK)
+    {                                                    
+        for (i=0; i<4; i++) //確認卡片序號
+        { 
+            serNumCheck ^= serNum[i];
+        }
+        if (serNumCheck != serNum[i])
+        { 
+            status = MI_ERR; 
+        }
+    }
+
+    return status;
+} 
+ /*模組：計算CRC，描述：使用MFRC522計算CRC，輸入參數：pIndata—需要讀取的CRC資料，len—資料長度，pOutData—CRC的計算結果，傳回：無*/
+void CalulateCRC(uchar *pIndata, uchar len, uchar *pOutData)
+{
+    uchar i, n; 
+    ClearBitMask(DivIrqReg, 0x04); //CRCIrq = 0
+    SetBitMask(FIFOLevelReg, 0x80); //清理FIFO指標
+    for (i=0; i<len; i++)  //向FIFO寫入資料
+    { 
+        Write_MFRC522(FIFODataReg, *(pIndata+i)); 
+    }
+    Write_MFRC522(CommandReg, PCD_CALCCRC); 
+                                       //等待CRC計算直到結束
+    i = 0xFF;
+    do
+    {
+        n = Read_MFRC522(DivIrqReg);
+        i--;
+    }
+    while ((i!=0) && !(n&0x04)); 
+                                         //讀取CRC計算結果
+    pOutData[0] = Read_MFRC522(CRCResultRegL);
+    pOutData[1] = Read_MFRC522(CRCResultRegM);
+}
+ /* 模組：寫MFRC522，描述：寫入資料區塊，輸入參數：blockAddr—資料區塊位址，writeData—向塊中寫入16位元組資料，傳回：當成功時傳回MI_PK */
+uchar MFRC522_Write(uchar blockAddr, uchar *writeData)
+{
+    uchar status;
+    uint recvBits;
+    uchar i;
+    uchar buff[18];      
+    buff[0] = PICC_WRITE;
+    buff[1] = blockAddr;
+    CalulateCRC(buff, 2, &buff[2]);
+    status = MFRC522_ToCard(PCD_TRANSCEIVE, buff, 4, buff, &recvBits); 
+    if ((status != MI_OK) || (recvBits != 4) || ((buff[0] & 0x0F) != 0x0A))
+    { 
+        status = MI_ERR; 
+    }         
+    if (status == MI_OK)
+    {
+        for (i=0; i<16; i++) //向FIFO佇列寫入16位元組資料
+        { 
+            buff[i] = *(writeData+i); 
+        }
+        CalulateCRC(buff, 16, &buff[16]);
+        status = MFRC522_ToCard(PCD_TRANSCEIVE, buff, 18, buff, &recvBits);
+         
+        if ((status != MI_OK) || (recvBits != 4) || ((buff[0] & 0x0F) != 0x0A))
+        { 
+            status = MI_ERR; 
+        }
+    }     
+    return status;
+}
+/* 模組：暫停MFRC522，描述：指令卡片進入睡眠模式，輸入參數：無，傳回：無*/
+void MFRC522_Halt(void)
+{
+    uchar status;
+    uint unLen;
+    uchar buff[4];  
+    buff[0] = PICC_HALT;
+    buff[1] = 0;
+    CalulateCRC(buff, 2, &buff[2]);  
+    status = MFRC522_ToCard(PCD_TRANSCEIVE, buff, 4, buff,&unLen);
+}
+
+10.4 Ethernet通訊
+實驗程式
+1、Web用戶端，進行HTTP請求的實驗程式
+下面程式，是使用乙太網插板作為Web用戶端，進行HTTP請求。
+#include <SPI.h>
+#include <Ethernet.h>
+                               //在下面陣列中輸入控制器的MAC位址
+                               //新款的乙太網插板會把MAC位址印在板子的貼紙上
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+                              //如果不想使用DNS解析，就是用數字作為伺服器位址
+                              //IPAddress server(74,125,232,128);  // Google的IP位址
+char server[] = "www.google.com";   //Google的域名地址
+                             //如果DHCP分配IP位址失敗，自己設定靜態IP位址
+IPAddress ip(192,168,0,177);
+                             //初始化乙太網用戶端的伺服器IP位址與通訊埠的函數庫以便連
+接（通訊埠80是HTTP的預設通訊埠）
+EthernetClient client;
+void setup() {
+  Serial.begin(9600);            //開啟序列埠通訊並等待通訊埠開啟
+  while (!Serial) {
+  ;                          //等待通訊埠連接
+ }
+ //開啟乙太網連接
+ if (Ethernet.begin(mac) == 0) {
+  Serial.println("Failed to configure Ethernet using DHCP");
+  //沒有熱點正在執行，所以永遠不作操作
+  //嘗試設定使用IP位址代替DHCP
+  Ethernet.begin(mac, ip);
+ }
+ //給乙太網插板1秒進行初始化
+ delay(1000);
+ Serial.println("connecting...");
+ //如果連接完畢，透過序列埠傳回報告
+ if (client.connect(server, 80)) {
+  Serial.println("connected");
+ //做一次HTTP請求
+  client.println("GET /search?q=arduino HTTP/1.1");
+  client.println("Host: www.google.com");
+  client.println("Connection: close");
+  client.println();
+ } 
+ else {
+   Serial.println("connection failed"); //如果沒有連接上伺服器
+ }
+}
+void loop()
+{
+ //如果從伺服器有輸入位元組，則讀取並且列印
+ if (client.available()) {
+  char c = client.read();
+  Serial.print(c);
+ }
+ if (!client.connected()) { //如果沒有連接上伺服器，停止用戶端
+  Serial.println();
+  Serial.println("disconnecting.");
+  client.stop();
+  while(true);
+ }
+}
+2、取得室溫上傳到網站上，以TXT記錄並繪圖的範例程式
+以下程式的功能是取得室溫，透過內建的PHP指令稿將溫度記錄下來，並同時繪製溫度走勢圖,
+（1）Arduino部分程式如下：
+＃include <OneWire.h> 
+＃include <string.h> 
+＃include <Ethernet.h> 
+int count = 0; 
+OneWire ds(8); 
+int HighByte, LowByte, TReading, SignBit, Tc_100, Tf_100, Whole, Fract; 
+int Tcount = 1; 
+int W[6]; 
+int F[6]; 
+int photocellPin = 0; //
+int light;  //來自傳感分割器的模擬度數
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; 
+byte ip[] = { 192, 168, 1, 36}; 
+byte server[] = { 77, 222, 78, 32}; 
+char buffer[256]; //字串緩衝器
+Client client(server, 80); 
+void setup() 
+{ 
+  Ethernet.begin(mac, ip); 
+  Serial.begin(9600); 
+  delay(1000); 
+} 
+void loop() 
+{ 
+  byte i; 
+  byte present = 0; 
+  byte data[12]; 
+  byte addr[8]; 
+  if ( !ds.search(addr)) { 
+    ds.reset_search(); 
+    return; 
+  } 
+  ds.reset(); 
+  ds.select(addr); 
+  ds.write(0x44,1);         //開始轉換
+  delay(1000);             
+  present = ds.reset(); 
+  ds.select(addr); 
+  ds.write(0xBE);         // 讀取中間結果暫存器
+  light = analogRead(photocellPin);  //讀取光強資料
+  Serial.print("light intensity = "); 
+  Serial.print(light); 
+  Serial.print("\n"); 
+  for ( i = 0; i < 9; i++) {           //需要9位元組
+    data[i] = ds.read(); 
+  }  
+  LowByte = data[0]; 
+  HighByte = data[1]; 
+  TReading = (HighByte << 8) + LowByte; 
+  SignBit = TReading & 0x8000;    //測試訊號位元
+  if (SignBit)                  // 如果相與的結果為1 
+  { 
+    TReading = (TReading ^ 0xffff) + 1;  // 比較下一個
+  } 
+  Tc_100 = (6 * TReading) + TReading / 4;      // 乘以6.25轉換成溫度
+  Whole = Tc_100 / 100;              //將整個的模組化的部分分割開
+  Fract = Tc_100 % 100; 
+  if (SignBit)                         //如果為負極
+  { 
+    Serial.print("-"); 
+  } 
+  Serial.print(Whole); 
+  Serial.print("."); 
+  if (Fract < 10) 
+  { 
+    Serial.print("0"); 
+  } 
+  Serial.print(Fract); 
+  Serial.print(" C\n"); 
+  if (client.connect()) { 
+    Serial.println("connected"); 
+ sprintf(buffer, "HEAD /path/to//newtemp.php?count=%d&temp=%d.%d&light=%d HTTP/1.1", Tcount, Whole, Fract, photocell); 
+ client.println(buffer); 
+ client.println("Host: yourdomain.com"); 
+ client.println("Connection: close"); 
+ client.println(); 
+ client.stop(); 
+ Tcount++; 
+ } 
+ else { 
+ Serial.println("connection failed"); 
+ } 
+ delay(60000);  //在傳送新資料之前等待1分鐘
+}
+（2）記錄資料使用的PHP
+<?php 
+if ($_SERVER['REQUEST_METHOD'] == 'HEAD') { 
+		$fields = explode("&", $_SERVER['QUERY_STRING']); 
+		$values = array(); 
+		foreach ($fields as $field) { 
+			$keyval = explode("=", $field); 
+			$values[$keyval[0]] = $keyval[1];  
+		} 
+		$file = fopen('./tempdata.txt','a+'); 
+		if ($file) { 
+			fwrite($file, time() . ':' . $values['count'] . ':' . $values['temp'] . ':' . $values['light']); 
+			fwrite($file, "\n"); 
+		fclose($file); 
+		} 
+} 
+?>
+（3）繪圖使用的PHP
+<?php 
+		define('WIDTH', 1000); 
+		define('HEIGHT', 520); 
+		define('FONT', 1); 
+		define('FONT2',2); 
+		$data = array(); 
+		$file = fopen("./tempdata.txt","r"); //
+		if ($file) { 
+			while (!feof($file)) { 
+			$line = trim(fgets($file)); 
+			if (strlen($line)) { 
+				$fields = explode(":", $line); 
+				$keyval = array(); 
+				$keyval['time'] = $fields[0]; 
+				$keyval['count'] = $fields[1]; 
+				$keyval['temperature'] = $fields[2]; 
+				$keyval['light'] = $fields[3]; 
+				$data[] = $keyval; 
+			} 
+		} 
+		fclose($file); 
+	} 
+		$datapoints = count($data);  //取得資料點的數目
+		$mintime = $data[0]['time']; //按時間先後順序劃線
+		$maxtime = $data[$datapoints - 1]['time']; 
+		$mintemp = $data[0]['temperature']; //溫度需要被處理
+		$maxtemp = $data[0]['temperature']; 
+		foreach ($data as $datapoint) { 
+			$mintemp = $mintemp < $datapoint['temperature'] ? 
+      $mintemp : $datapoint['temperature']; 
+			$maxtemp = $maxtemp > $datapoint['temperature'] ? 
+      $maxtemp : $datapoint['temperature']; 
+			$avgtemp += $datapoint['temperature']; 
+			$curtemp = $datapoint['temperature']; 
+		} 
+	 $avgtemp = round(($avgtemp / $datapoints),2); 
+	$lowtime  = intval($mintime / 3600) * 3600; //取得軸的維度聚攏並歸到最近的度數
+		$hightime = (intval($maxtime / 3600) + 1) * 3600; 
+		$difftime = $hightime - $lowtime; 
+		$lowtemp  = intval($mintemp); 
+		$hightemp = intval($maxtemp) + 1; 
+		$difftemp = $hightemp - $lowtemp; 
+		$image = imagecreate(WIDTH, HEIGHT); //建立圖片
+		if ($image) { 
+			$background = imagecolorallocate($image, 255, 255, 255); 
+			$black      = imagecolorallocate($image, 0, 0, 0); 
+			$red        = imagecolorallocate($image, 255, 0, 0); 
+			$blue       = imagecolorallocate($image, 0, 0, 255); 
+			$green 			= imagecolorallocate($image, 0, 204, 5); 
+			$grey 			= imagecolorallocate($image, 210,210,210); 
+			imageline($image, 20, 20, 20, 485, $black); //畫軸線
+			imageline($image, 15, 480, 980, 480, $black); 
+			imageline($image, 15, 20, 20, 20, $black); 
+			imageline($image, 980, 480, 980, 485, $black);  
+			imageline($image, 20, 20, 980, 20, $grey); //畫頂部水平線
+			imageline($image, 980, 20, 980, 479, $grey); //畫最右邊的垂直線
+			for ($i = 3600; $i < $difftime; $i += 3600) { 
+				$x = 20 + (($i * 960) / $difftime); 
+			imageline($image, $x, 480, $x, 483, $black); //在水平線上打點
+			imageline($image, $x, 479, $x, 20, $grey); 
+		} 
+		$temp = intval($lowtemp); 
+		for ($i = 1; $i < $difftemp; $i++) { 
+			$y = 480 - (($i * 460) / $difftemp); 
+			imageline($image, 17, $y, 20, $y, $black); //在垂直線上打點
+			imageline($image, 21, $y, 980, $y, $grey); 
+			$temp = intval($temp) + 1; 
+			$ytemp = intval($y) - 5; 
+			imagestring($image, FONT, 0, $ytemp, $temp . 'C', $black); 
+		} 
+		imagestring($image, FONT, 8, 490, date("H:i", $lowtime), $black); //標記
+		imagestring($image, FONT, 970, 490, date("H:i", $hightime), $black); 
+		imagestring($image, FONT, 0, 475, $lowtemp . 'C', $black); 
+		imagestring($image, FONT, 0, 15, $hightemp . 'C', $black); 
+//畫最大，最小，平均
+		imagestring($image, FONT2, 700, 430, "Cur. temp : " . $curtemp . " °C",$black);
+		imagestring($image, FONT2, 700, 450, "Avg. temp : " . $avgtemp . " °C",$green);
+		imagestring($image, FONT2, 850, 430, "Min. temp : " . $mintemp . " °C",$blue);
+		imagestring($image, FONT2, 850, 450, "Max. temp : " . $maxtemp . " °C",$red);
+		$avgtemp = 480 - ((($avgtemp - $lowtemp) * 460) / $difftemp);  //畫平均線
+		imageline($image,20, $avgtemp, 980, $avgtemp, $green); 
+//畫出溫度點，第一個點的位置
+		$prevx = (($data[0]['time'] - $lowtime) * 960) / $difftime; 
+		$prevy = (($data[0]['temperature'] - $lowtemp) * 460) / $difftemp; 
+//從前一個點連線到目前的點
+		for ($i = 1; $i < $datapoints; $i++) { 
+			$x = (($data[$i]['time'] - $lowtime) * 960) / $difftime; 
+			$y = (($data[$i]['temperature'] - $lowtemp) * 460) / $difftemp; 
+			imageline($image, $prevx + 20, 480 - $prevy, $x + 20, 480 - $y, $red); 
+			$prevx = $x; 
+		$prevy = $y; 
+		} 
+		$generated = 'Generated: ' . date("r"); //最後的時間和日期戳
+		imagestring($image,FONT,WIDTH - 15 - (imagefontwidth(FONT) * strlen($generated)), HEIGHT - 15,$generated,$blue); 
+		header('Content-Type: image/png'); //輸出圖片
+		imagepng($image); 
+		imagedestroy($image); 
+}
+10.5 WiFi通訊
+1、沒有密碼的無接線連接：
+透過WiFi Shield連接一個沒有密碼的無接線，程式如下：
+#include <WiFi.h>
+char ssid[] = "yourNetwork";     //網路的名稱
+int status = WL_IDLE_STATUS;     //WiFi狀態
+void setup() {
+  Serial.begin(9600);  //初始化序列埠並且等待通訊埠開啟
+  while (!Serial) {
+    ;               //等待序列埠連接
+  }  
+  if (WiFi.status() == WL_NO_SHIELD) {     //檢測插板的連接
+    Serial.println("WiFi shield not present");   
+    while(true);     //當插板沒有連接上時，不再繼續
+  } 
+  while ( status != WL_CONNECTED) {  //嘗試連接WiFi網路
+    Serial.print("Attempting to connect to open SSID: ");
+    Serial.println(ssid);
+    status = WiFi.begin(ssid);  
+    delay(10000);  //等待10秒以連接
+  }   
+  Serial.print("You're connected to the network");  //已連接上，所以列印出資料
+  printCurrentNet();
+  printWifiData();
+}
+void loop() { 
+  delay(10000);         //當超過10秒時檢查網路連接
+  printCurrentNet();
+}
+void printWifiData() {
+  IPAddress ip = WiFi.localIP();  //列印WiFi插板的IP位址
+  Serial.print("IP Address: ");
+  Serial.println(ip);
+  Serial.println(ip);  
+  byte mac[6];  //列印MAC位址
+  WiFi.macAddress(mac);
+  Serial.print("MAC address: ");
+  Serial.print(mac[5],HEX);
+  Serial.print(":");
+  Serial.print(mac[4],HEX);
+  Serial.print(":");
+  Serial.print(mac[3],HEX);
+  Serial.print(":");
+  Serial.print(mac[2],HEX);
+  Serial.print(":");
+  Serial.print(mac[1],HEX);
+  Serial.print(":");
+  Serial.println(mac[0],HEX);  
+  IPAddress subnet = WiFi.subnetMask();  //列印子網路遮罩
+  Serial.print("NetMask: ");
+  Serial.println(subnet);
+  IPAddress gateway = WiFi.gatewayIP();  //列印閘道地址
+  Serial.print("Gateway: ");
+  Serial.println(gateway);
+}
+void printCurrentNet() {
+  Serial.print("SSID: ");    //列印所連接的無線網路的SSID
+  Serial.println(WiFi.SSID()); 
+  byte bssid[6];              //列印所連接的硬體的MAC位址
+  WiFi.BSSID(bssid);    
+  Serial.print("BSSID: ");
+  Serial.print(bssid[5],HEX);
+  Serial.print(":");
+  Serial.print(bssid[4],HEX);
+  Serial.print(":");
+  Serial.print(bssid[3],HEX);
+  Serial.print(":");
+  Serial.print(bssid[2],HEX);
+  Serial.print(":");
+  Serial.print(bssid[1],HEX);
+  Serial.print(":");
+  Serial.println(bssid[0],HEX); 
+  long rssi = WiFi.RSSI();//列印訊號強度
+  Serial.print("signal strength (RSSI):");
+  Serial.println(rssi); 
+  byte encryption = WiFi.encryptionType();//列印金鑰類型
+  Serial.print("Encryption Type:");
+  Serial.println(encryption,HEX);
+}
+2、掃描網路
+掃描目前空間中的無接線，但是不連接。
+#include <SPI.h>
+#include <WiFi.h>
+void setup() { 
+  Serial.begin(9600); //初始化序列埠並等待通訊埠開啟
+  while (!Serial) {
+    ;
+  }
+  if (WiFi.status() == WL_NO_SHIELD) {
+    Serial.println("WiFi shield not present");
+    while(true);
+  }
+  printMacAddress(); 
+  Serial.println("Scanning available networks..."); //掃描存在的網路
+  listNetworks();
+}
+void loop() {
+  delay(10000);
+  Serial.println("Scanning available networks...");  //掃描存在的網路
+  listNetworks();
+}
+void printMacAddress() {
+  byte mac[6];                    
+  WiFi.macAddress(mac);
+  Serial.print("MAC: ");
+  Serial.print(mac[5],HEX);
+  Serial.print(":");
+  Serial.print(mac[4],HEX);
+  Serial.print(":");
+  Serial.print(mac[3],HEX);
+  Serial.print(":");
+  Serial.print(mac[2],HEX);
+  Serial.print(":");
+  Serial.print(mac[1],HEX);
+  Serial.print(":");
+  Serial.println(mac[0],HEX);
+}
+void listNetworks() { 
+  Serial.println("** Scan Networks **"); //掃描週邊的網路
+  int numSsid = WiFi.scanNetworks();
+  if (numSsid == -1)
+  {
+    Serial.println("Couldn't get a wifi connection");
+    while(true);
+  } 
+  Serial.print("number of available networks:"); //列印被發現的網路的清單
+  Serial.println(numSsid); 
+  for (int thisNet = 0; thisNet<numSsid; thisNet++) { //列印每一個被發現網路編號和名稱
+    Serial.print(thisNet);
+    Serial.print(") ");
+    Serial.print(WiFi.SSID(thisNet));
+    Serial.print("\tSignal: ");
+    Serial.print(WiFi.RSSI(thisNet));
+    Serial.print(" dBm");
+    Serial.print("\tEncryption: ");
+    printEncryptionType(WiFi.encryptionType(thisNet));
+  }
+}
+void printEncryptionType(int thisType) { 
+  switch (thisType) {                      //讀取加密方式並且列印名稱
+  case ENC_TYPE_WEP:
+    Serial.println("WEP");
+    break;
+  case ENC_TYPE_TKIP:
+    Serial.println("WPA");
+    break;
+  case ENC_TYPE_CCMP:
+    Serial.println("WPA2");
+    break;
+  case ENC_TYPE_NONE:
+    Serial.println("None");
+    break;
+  case ENC_TYPE_AUTO:
+    Serial.println("Auto");
+    break;
+  }
+}
+
+10.6 BlueTooth通訊
+實驗程式
+下面的程式是簡單的使用手機透過藍牙模組控制Arduino實驗板上的LED燈亮滅的範例，讀者可以擴充出藍牙通訊的更多用法。
+char val;
+int ledpin=13;
+void setup()
+{
+  Serial.begin(9600);
+  pinMode(ledpin,OUTPUT);
+} 
+void loop()
+{
+  val=Serial.read();
+  if(val=='q')
+  {
+    digitalWrite(ledpin,HIGH);
+    Serial.println("LED ON!");
+  }else if(val=='w'){
+  digitalWrite(ledpin,LOW);
+Serial.println("LED OFF!");
+  }
+}
+
+10.7  Xbee通訊
+實驗程式
+我們使用一個最簡單的工程來進行實驗：
+int ledPin = 13;
+int val;
+void setup() 
+{
+  pinMode(ledPin, OUTPUT);
+  Serial.begin(9600);
+}
+void loop() 
+{
+  Serial.print('A');
+  delay(1000);
+  val = Serial.read();
+  if (-1 != val) 
+  {
+    if ('A' == val) 
+    {
+      digitalWrite(ledPin, HIGH);
+      delay(500);
+      digitalWrite(ledPin, LOW);
+      delay(500);
+    }
+  }
+}
+
+第11章遊戲開發類別
+11.1 Jumping Pong
+#include <TimerOne.h>
+#include <LedControl.h>
+#include <avr/pgmspace.h>
+#include <IRremote.h>
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27,20,4); //液晶屏的設定
+LedControl myMatrix=LedControl(7,9,8,1);
+int column=3,row=random(8)+1;
+int directionX=1,directionY=1;
+int paddle1=1,paddle1Val;
+int paddle2=2,paddle2Val;
+int speed=300;
+int counter=0,mult=10;
+int s1=0;
+int s2=0;
+int s=0;
+int ldrpin=0; //光敏設定
+int val=0;
+int ledPin=13;
+int RECV_PIN = 11;//定義紅外接收器的接腳為11，紅外遙控設定
+int LED_PIN=4;//定義發光LED接腳數字4
+IRrecv irrecv(RECV_PIN);
+decode_results results;
+int a;
+ void setup()
+ {
+ lcd.init();                      //初始化液晶屏
+  lcd.init();
+  lcd.backlight();  
+  myMatrix.shutdown(0,false);
+  myMatrix.setIntensity(0,8);
+  myMatrix.clearDisplay(0);
+  randomSeed(analogRead(0));
+  pinMode(ledPin,OUTPUT);
+  Serial.begin(9600);  
+  irrecv.enableIRIn();  // 初始化紅外接收器
+  pinMode(LED_PIN,OUTPUT);   //設定發光LED接腳數字4
+}
+  void loop()
+{
+ Serial.println(a);
+ val=analogRead(ldrpin);
+ Serial.print(val);
+ Serial.println();
+if(val<500)
+ {  if (irrecv.decode(&results)) 
+{ int values=results.value;
+switch(values)
+ { case 0xFFA25D: 
+    lcd.clear();
+lcd.setCursor(3, 0);
+    lcd.print("Level:easy");
+    Serial.println(results.value, HEX);//以16進位換行輸出接收程式
+    Serial.println();//為了便於觀看輸出結果增加一個空行
+    digitalWrite(ledPin,HIGH);
+    digitalWrite(LED_PIN,HIGH);//LED點亮
+    a=1;
+    Serial.print("a:");
+    Serial.println(a);
+    game();
+    break;
+      case 0xFF30CF: 
+    lcd.clear();
+    lcd.setCursor(3, 0);
+    lcd.print("Level:easy");
+    delay(2000);
+    Serial.println(results.value, HEX);//以16進位換行輸出接收程式
+    Serial.println();//為了便於觀看輸出結果增加一個空行
+    digitalWrite(ledPin,HIGH);
+    digitalWrite(LED_PIN,HIGH);//LED點亮
+    a=1;
+    Serial.print("a:");
+    Serial.println(a);
+    game();
+    break;
+  case 0xFF18E7: 
+    lcd.clear();
+    lcd.setCursor(3, 0);
+    lcd.print("Level:hard");
+    delay(2000);
+    Serial.println(results.value, HEX);//以16進位換行輸出接收程式
+    Serial.println();//為了便於觀看輸出結果增加一個空行
+    digitalWrite(ledPin,HIGH);
+    digitalWrite(LED_PIN,HIGH);//LED點亮
+    a=2;
+    Serial.print("a:");
+    Serial.println(a);
+    game1();
+    break;
+  case 0xFF7A85:
+    lcd.clear(); 
+    lcd.setCursor(3, 0);
+    lcd.print("Level:hardest");
+    delay(2000);
+    Serial.println(results.value, HEX);//以16進位換行輸出接收程式
+    Serial.println();//為了便於觀看輸出結果增加一個空行
+    digitalWrite(ledPin,HIGH);
+    digitalWrite(LED_PIN,HIGH);//LED點亮
+    a=3;
+    Serial.print("a:");
+    Serial.println(a);
+    game2();
+    break;
+  case 0xFF10EF: 
+    lcd.clear();
+    lcd.setCursor(5, 0);
+    lcd.print("Single");
+    delay(2000);
+    Serial.println(results.value, HEX);//以16進位換行輸出接收程式
+    Serial.println();//為了便於觀看輸出結果增加一個空行
+    digitalWrite(ledPin,HIGH);
+    digitalWrite(LED_PIN,HIGH);//LED點亮
+    a=4;
+    Serial.print("a:");
+    Serial.println(a);
+    game0();
+    break;
+  case 0xFF42BD: 
+           lcd.clear();
+      lcd.setCursor(3, 0);
+      lcd.print("Level:easy");
+      delay(2000);
+      Serial.println(results.value, HEX);//以16進位換行輸出接收程式
+      Serial.println();//為了便於觀看輸出結果增加一個空行
+      digitalWrite(ledPin,HIGH);
+      digitalWrite(LED_PIN,HIGH);//LED點亮
+      a=5;
+      Serial.print("a:");
+      Serial.println(a);
+      game5();
+      break;
+   case 0xFF4AB5: 
+      lcd.clear();
+      lcd.setCursor(3, 0);
+      lcd.print("Level:hard");
+      delay(2000);
+      lcd.clear();
+      Serial.println(results.value, HEX);//以16進位換行輸出接收程式
+      Serial.println();//為了便於觀看輸出結果增加一個空行
+      digitalWrite(ledPin,HIGH);
+      digitalWrite(LED_PIN,HIGH);//LED點亮
+      a=6;
+      Serial.print("a:");
+      Serial.println(a);
+      game6();
+      break;
+    case 0xFF52AD: 
+      lcd.clear();
+      lcd.setCursor(3, 0);
+      lcd.print("Level:hardest");
+      delay(2000);
+      Serial.println(results.value, HEX);//以16進位換行輸出接收程式
+      Serial.println();//為了便於觀看輸出結果增加一個空行
+      digitalWrite(ledPin,HIGH);
+      digitalWrite(LED_PIN,HIGH);//LED點亮
+      a=7;
+      Serial.print("a:");
+      Serial.println(a);
+      game7();
+      break;
+    case 0xFFE21D: 
+      Serial.println(results.value, HEX);//以16進位換行輸出接收程式
+      Serial.println();//為了便於觀看輸出結果增加一個空行
+      digitalWrite(LED_PIN,LOW);//LED熄滅
+      digitalWrite(ledPin,LOW);
+      for (int x=0;x<3;x++)
+         {
+            myMatrix.clearDisplay(0);
+            delay(250);
+               for (int y=0;y<8;y++)
+               {
+                  myMatrix.setRow(0,y,0);
+               }
+               digitalWrite(ledPin,LOW);
+               a=digitalRead(ledPin);
+              }
+              delay(250);
+              break;
+          }          
+         irrecv.resume(); // 接收下一個值
+ }
+ }
+if(a==1){
+if(val<500)
+{game();}
+}
+else if(a==2){
+if(val<500)
+{game1();}
+}
+else if(a==3){
+if(val<500)
+{game2();}
+}
+else if(a==4){
+if(val<500)
+{game0();}
+}
+else if(a==5){
+if(val<500)
+{game5();}
+}
+else if(a==6){
+if(val<500)
+{game6();}
+}
+else if(a==7){
+if(val<500)
+{game7();}
+}
+ else if(a==0) { 
+             for (int x=0;x<3;x++)
+             {
+               myMatrix.clearDisplay(0);
+               delay(250);
+               for (int y=0;y<8;y++)
+               {
+                  myMatrix.setRow(0,y,0);
+               }
+               digitalWrite(ledPin,LOW);
+              }
+              delay(250);
+           }  
+}
+void oops1 () {    
+      for (int x=0;x<3;x++) {        
+        myMatrix.clearDisplay(0);
+        delay(250);             
+myMatrix.setRow(0,2,255); 
+myMatrix.setColumn(0,7,0);
+myMatrix.setColumn(0,3,0);
+myMatrix.setColumn(0,5,255);
+myMatrix.setColumn(0,1,255);
+myMatrix.setRow(0,3,0);
+myMatrix.setRow(0,4,0);
+myMatrix.setRow(0,5,0);
+myMatrix.setRow(0,6,0);
+myMatrix.setRow(0,7,0);
+ delay(1000);
+   myMatrix.clearDisplay(0);
+      }
+      counter=0;
+      speed=300;
+      column=3;
+      row=random(8)+1;      
+}
+void oops2 () 
+{
+      for (int x=0;x<3;x++) {
+        myMatrix.clearDisplay(0);
+        delay(250);            
+myMatrix.setRow(0,5,255); 
+myMatrix.setColumn(0,3,0);
+myMatrix.setColumn(0,7,0);
+myMatrix.setColumn(0,5,7);
+myMatrix.setColumn(0,1,7);
+delay(1000);
+myMatrix.clearDisplay(0);
+}
+      counter=0;
+      speed=300;
+      column=3;
+      row=random(8)+1;      
+}
+void game0()
+{ paddle1Val=analogRead(paddle1);
+  paddle1Val=map(paddle1Val,200,1024,1,6);
+  column+=directionX;
+  row+=directionY;  if(column==6&&directionX==1&&(paddle1Val==row||paddle1Val+1==row||paddle1Val+2==row))
+{directionX=-1;s++;}
+  if(column==0&&directionX==-1){directionX=1;}
+  if(row==7&&directionY==1){directionY=-1;}
+  if(row==0&&directionY==-1){directionY=1;}
+  if(column==7){oops2();
+  lcd.clear();
+  lcd.setCursor(2, 0);
+  lcd.print("Score:");
+  lcd.print(s);
+  delay(3000);
+lcd.clear();  
+lcd.setCursor(0, 0);
+lcd.print("please choice "); 
+lcd.setCursor(5, 1);
+lcd.print("the level: ");   
+delay(1000);
+lcd.clear(); 
+lcd.setCursor(0, 0);
+lcd.print("levels: 7.easy"); 
+lcd.setCursor(2, 1);
+lcd.print("8.hard  9.hardest"); 
+delay(2000); 
+lcd.clear();
+lcd.setCursor(2, 0);
+lcd.print("1.double"); 
+delay(2000);
+lcd.clear();      
+}
+  myMatrix.clearDisplay(0);
+  myMatrix.setLed(0,column,row,HIGH);
+  myMatrix.setLed(0,7,paddle1Val,HIGH);
+  myMatrix.setLed(0,7,paddle1Val+1,HIGH);
+  myMatrix.setLed(0,7,paddle1Val+2,HIGH);
+  if(!(counter%mult)){speed-=5;mult*mult;}
+  delay(speed);
+  counter++;
+}
+void game()
+{
+  myMatrix.clearDisplay(0);
+  paddle1Val=analogRead(paddle1);
+  paddle2Val=analogRead(paddle2);
+  paddle1Val=map(paddle1Val,200,1024,1,6);
+  paddle2Val=map(paddle2Val,200,1024,1,6);
+  column+=directionX;
+  row+=directionY;  if(column==6&&directionX==1&&(paddle1Val==row||paddle1Val+1==row||paddle1Val+2==row))
+{directionX=-1;s1++;}    if(column==1&&directionX==-1&&(paddle2Val==row||paddle2Val+1==row||paddle2Val+2==row)){directionX=1;s2++;}
+  if(row==7&&directionY==1){directionY=-1;}
+  if(row==0&&directionY==-1){directionY=1;}  
+    if(column==0){oops1(); 
+    lcd.clear();
+    lcd.setCursor(2, 0);
+    lcd.print("A.score:");
+    lcd.print(s1);
+    lcd.setCursor(2, 1);
+    lcd.print("B.score:");
+    lcd.print(s2);
+    s1=0;s2=0;
+    delay(2000);
+    lcd.clear();
+lcd.clear();
+lcd.setCursor(0, 0);
+lcd.print("please choice "); 
+lcd.setCursor(5, 1);
+lcd.print("the level: ");   
+delay(1000);
+    lcd.clear(); 
+  lcd.setCursor(0, 0);
+lcd.print("levels: 1.easy"); 
+  lcd.setCursor(2, 1);
+lcd.print("2.hard  3.hardest"); 
+    delay(2000);
+    lcd.clear();
+    lcd.setCursor(2, 0);
+lcd.print("4.single"); 
+    delay(2000);
+  lcd.clear();       
+  }
+  if(column==7){oops2(); 
+  lcd.clear();
+      lcd.setCursor(2, 0);
+      lcd.print("A.score:");
+      lcd.print(s1);
+      lcd.setCursor(2, 1);
+      lcd.print("B.score:");
+      lcd.print(s2);
+      s1=0;s2=0;
+      delay(2000);
+      lcd.clear();
+lcd.setCursor(0, 0);
+lcd.print("please choice "); 
+lcd.setCursor(5, 1);
+lcd.print("the level: ");   
+delay(1000);
+  lcd.clear();
+  lcd.setCursor(0, 0);
+lcd.print("levels: 1.easy"); 
+  lcd.setCursor(2, 1);
+  lcd.print("2.hard  3.hardest"); 
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(2, 0);
+  lcd.print("4.single"); 
+  delay(2000);
+  lcd.clear();      
+  }
+  myMatrix.clearDisplay(0);
+  myMatrix.setLed(0,column,row,HIGH);
+  myMatrix.setLed(0,7,paddle1Val,HIGH);
+  myMatrix.setLed(0,7,paddle1Val+1,HIGH);
+  myMatrix.setLed(0,7,paddle1Val+2,HIGH);
+  myMatrix.setLed(0,0,paddle2Val,HIGH);
+  myMatrix.setLed(0,0,paddle2Val+1,HIGH);
+  myMatrix.setLed(0,0,paddle2Val+2,HIGH);
+  if(!(counter%mult)){speed-=5;mult*mult;}
+  delay(speed);
+  counter++;
+}
+void game1()
+{ speed=200;
+   myMatrix.clearDisplay(0);
+   paddle1Val=analogRead(paddle1);
+   paddle2Val=analogRead(paddle2);
+   paddle1Val=map(paddle1Val,200,1024,1,6);
+   paddle2Val=map(paddle2Val,200,1024,1,6);
+   column+=directionX;
+   row+=directionY;  if(column==6&&directionX==1&&(paddle1Val==row||paddle1Val+1==row||paddle1Val+2==row))
+{directionX=-1;s1++;}  
+  if(column==1&&directionX==-1&&(paddle2Val==row||paddle2Val+1==row||paddle2Val+2==row)){directionX=1;s2++;}
+  if(row==7&&directionY==1){directionY=-1;}
+  if(row==0&&directionY==-1){directionY=1;}  
+  if(column==0){oops1(); 
+    lcd.clear();
+    lcd.setCursor(2, 0);
+    lcd.print("A.score:");
+    lcd.print(s1);
+    lcd.setCursor(2, 1);
+    lcd.print("B.score:");
+    lcd.print(s2);
+    s1=0;s2=0;
+    delay(2000);
+    lcd.clear();
+lcd.setCursor(0, 0);
+lcd.print("please choice "); 
+lcd.setCursor(5, 1);
+lcd.print("the level: ");   
+delay(1000);
+    lcd.clear(); 
+    lcd.setCursor(0, 0);
+lcd.print("levels: 1.easy"); 
+    lcd.setCursor(2, 1);
+    lcd.print("2.hard  3.hardest"); 
+delay(2000);
+    lcd.clear();
+    lcd.setCursor(2, 0);
+    lcd.print("4.single"); 
+    delay(2000);
+    lcd.clear();      
+    delay(3000);
+    lcd.clear();
+    }
+  if(column==7){oops2(); 
+  lcd.clear();
+  lcd.setCursor(2, 0);
+  lcd.print("A.score:");
+  lcd.print(s1);
+  lcd.setCursor(2, 1);
+  lcd.print("B.score:");
+  lcd.print(s2);
+  s1=0;s2=0;
+  delay(2000);
+  lcd.clear();
+lcd.setCursor(0, 0);
+lcd.print("please choice "); 
+lcd.setCursor(5, 1);
+lcd.print("the level: ");   
+delay(1000);
+  lcd.clear(); 
+  lcd.setCursor(0, 0);
+lcd.print("levels: 1.easy"); 
+  lcd.setCursor(2, 1);
+  lcd.print("2.hard  3.hardest"); 
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(2, 0);
+  lcd.print("4.single"); 
+  delay(2000);
+  lcd.clear();           
+  } 
+  myMatrix.clearDisplay(0);
+  myMatrix.setLed(0,column,row,HIGH);
+  myMatrix.setLed(0,7,paddle1Val,HIGH);
+  myMatrix.setLed(0,7,paddle1Val+1,HIGH);
+  myMatrix.setLed(0,7,paddle1Val+2,HIGH);
+  myMatrix.setLed(0,0,paddle2Val,HIGH);
+  myMatrix.setLed(0,0,paddle2Val+1,HIGH);
+  myMatrix.setLed(0,0,paddle2Val+2,HIGH);
+  if(!(counter%mult)){speed-=5;mult*mult;}
+  delay(speed);
+  counter++;
+}
+void game2()
+{
+  speed=150;
+  myMatrix.clearDisplay(0);
+  paddle1Val=analogRead(paddle1);
+  paddle2Val=analogRead(paddle2);
+  paddle1Val=map(paddle1Val,200,1024,1,6);
+  paddle2Val=map(paddle2Val,200,1024,1,6);
+  column+=directionX;
+  row+=directionY;  if(column==6&&directionX==1&&(paddle1Val==row||paddle1Val+1==row||paddle1Val+2==row))
+{directionX=-1;s1++;}    if(column==1&&directionX==-1&&(paddle2Val==row||paddle2Val+1==row||paddle2Val+2==row)){directionX=1;s2++;}
+  if(row==7&&directionY==1){directionY=-1;}
+  if(row==0&&directionY==-1){directionY=1;}  
+  if(column==0){oops1(); 
+      lcd.setCursor(2, 0);
+      lcd.print("A.score:");
+      lcd.print(s1);
+      lcd.setCursor(2, 1);
+      lcd.print("B.score:");
+      lcd.print(s2);
+      s1=0;s2=0;
+      delay(2000);
+      lcd.clear();
+      lcd.setCursor(0, 0);
+lcd.print("please choice "); 
+lcd.setCursor(5, 1);
+lcd.print("the level: ");   
+delay(1000);
+lcd.setCursor(0, 0);
+lcd.print("levels: 1.easy"); 
+      lcd.setCursor(2, 1);
+      lcd.print("2.hard  3.hardest"); 
+      delay(2000);
+lcd.clear();
+      lcd.setCursor(2, 0);
+lcd.print("4.single"); 
+      delay(2000);
+      lcd.clear();      
+     }
+      if(column==7){oops2(); 
+      lcd.clear();
+      lcd.setCursor(2, 0);
+      lcd.print("A.score:");
+      lcd.print(s1);
+      lcd.setCursor(2, 1);
+      lcd.print("B.score:");
+      lcd.print(s2);
+      s1=0;s2=0;
+      delay(2000);
+      lcd.clear();
+lcd.setCursor(0, 0);
+lcd.print("please choice "); 
+lcd.setCursor(5, 1);
+lcd.print("the level: ");   
+delay(1000);
+      lcd.clear(); 
+      lcd.setCursor(0, 0);
+lcd.print("levels: 1.easy"); 
+      lcd.setCursor(2, 1);
+      lcd.print("2.hard  3.hardest"); 
+      delay(2000);
+      lcd.clear();
+      lcd.setCursor(2, 0);
+lcd.print("4.single"); 
+      delay(2000);
+      lcd.clear();      
+      } 
+  myMatrix.clearDisplay(0);
+  myMatrix.setLed(0,column,row,HIGH);
+  myMatrix.setLed(0,7,paddle1Val,HIGH);
+  myMatrix.setLed(0,7,paddle1Val+1,HIGH);
+  myMatrix.setLed(0,7,paddle1Val+2,HIGH);  
+  myMatrix.setLed(0,0,paddle2Val,HIGH);
+  myMatrix.setLed(0,0,paddle2Val+1,HIGH);
+  myMatrix.setLed(0,0,paddle2Val+2,HIGH);  
+  if(!(counter%mult)){speed-=5;mult*mult;}
+  delay(speed);
+  counter++;}
+void game5()
+{speed=300;
+  paddle1Val=analogRead(paddle1);
+  paddle1Val=map(paddle1Val,200,1024,1,6);
+  column+=directionX;
+  row+=directionY;  if(column==6&&directionX==1&&(paddle1Val==row||paddle1Val+1==row||paddle1Val+2==row))
+{directionX=-1;s++;}
+  if(column==0&&directionX==-1){directionX=1;}
+  if(row==7&&directionY==1){directionY=-1;}
+  if(row==0&&directionY==-1){directionY=1;}
+  if(column==7){oops2();
+  lcd.clear();
+  lcd.setCursor(2, 0);
+  lcd.print("Score:");
+  lcd.print(s);
+  delay(3000);
+  lcd.setCursor(0, 0);
+lcd.print("please choice "); 
+lcd.setCursor(5, 1);
+lcd.print("the level: ");   
+delay(1000);
+  lcd.clear();
+  lcd.setCursor(0, 0);
+lcd.print("levels: 7.easy"); 
+  lcd.setCursor(2, 1);
+  lcd.print("8.hard  9.hardest"); 
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(2,0);
+  lcd.print("1.double"); 
+  delay(3000);
+  lcd.clear();      
+}
+  myMatrix.clearDisplay(0);
+  myMatrix.setLed(0,column,row,HIGH);
+  myMatrix.setLed(0,7,paddle1Val,HIGH);
+  myMatrix.setLed(0,7,paddle1Val+1,HIGH);
+  myMatrix.setLed(0,7,paddle1Val+2,HIGH);
+  if(!(counter%mult)){speed-=5;mult*mult;}
+  delay(speed);
+  counter++;
+}
+void game6()
+{speed=220;
+  paddle1Val=analogRead(paddle1);
+  paddle1Val=map(paddle1Val,200,1024,1,6);
+  column+=directionX;
+  row+=directionY;  if(column==6&&directionX==1&&(paddle1Val==row||paddle1Val+1==row||paddle1Val+2==row))
+{directionX=-1;s++;}
+  if(column==0&&directionX==-1){directionX=1;}
+  if(row==7&&directionY==1){directionY=-1;}
+  if(row==0&&directionY==-1){directionY=1;}
+  if(column==7){oops2();
+  lcd.clear();
+  lcd.setCursor(2, 0);
+  lcd.print("Score:");
+  lcd.print(s);
+  delay(3000);
+  lcd.setCursor(0, 0);
+lcd.print("please choice "); 
+lcd.setCursor(5, 1);
+lcd.print("the level: ");   
+delay(1000);
+  lcd.clear();
+  lcd.setCursor(0, 0);
+lcd.print("levels: 7.easy"); 
+  lcd.setCursor(2, 1);
+  lcd.print("8.hard  9.hardest"); 
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(2, 0);
+  lcd.print("1.double"); 
+  delay(2000);
+  lcd.clear();      
+}
+  myMatrix.clearDisplay(0);
+  myMatrix.setLed(0,column,row,HIGH);
+  myMatrix.setLed(0,7,paddle1Val,HIGH);
+  myMatrix.setLed(0,7,paddle1Val+1,HIGH);
+  myMatrix.setLed(0,7,paddle1Val+2,HIGH);
+  if(!(counter%mult)){speed-=5;mult*mult;}
+  delay(speed);
+  counter++;
+}
+void game7()
+{speed=180;
+  paddle1Val=analogRead(paddle1);
+  paddle1Val=map(paddle1Val,200,1024,1,6);
+  column+=directionX;
+  row+=directionY;  if(column==6&&directionX==1&&(paddle1Val==row||paddle1Val+1==row||paddle1Val+2==row))
+{directionX=-1;s++;}
+  if(column==0&&directionX==-1){directionX=1;}
+  if(row==7&&directionY==1){directionY=-1;}
+  if(row==0&&directionY==-1){directionY=1;}
+  if(column==7){oops1();
+  lcd.clear();
+  lcd.setCursor(2, 0);
+  lcd.print("Score:");
+  lcd.print(s);
+  delay(3000);
+  lcd.setCursor(0, 0);
+lcd.print("please choice "); 
+lcd.setCursor(5, 1);
+lcd.print("the level: ");   
+delay(1000);
+  lcd.clear();
+  lcd.setCursor(0, 0);
+lcd.print("levels: 7.easy"); 
+  lcd.setCursor(2, 1);
+  lcd.print("8.hard  9.hardest"); 
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(2, 0);
+  lcd.print("1.double"); 
+  delay(2000);
+  lcd.clear();      
+}
+  myMatrix.clearDisplay(0);
+  myMatrix.setLed(0,column,row,HIGH);
+  myMatrix.setLed(0,7,paddle1Val,HIGH);
+  myMatrix.setLed(0,7,paddle1Val+1,HIGH);
+  myMatrix.setLed(0,7,paddle1Val+2,HIGH);
+  if(!(counter%mult)){speed-=5;mult*mult;}
+  delay(speed);
+  counter++;
+}
+11.2 打地鼠遊戲機
+參考程式
+int led1=2;
+int led2=3;
+int led3=4;
+int led4=5;
+int buzzer=6;
+int p1=11;
+int p2=12;
+void led(void)
+{ 
+int num;
+  num=rand()%4+1;
+if(num==1)     digitalWrite(led1,HIGH);
+if(num==2)     digitalWrite(led2,HIGH);
+if(num==3)     digitalWrite(led3,HIGH);
+if(num==4)     digitalWrite(led4,HIGH);
+  }  
+int key_scan()
+{  
+int i;
+    int j=rand()%4+1;
+    digitalWrite(p1,LOW);
+    digitalWrite(p2,HIGH);
+    if(analogRead(0)>512)
+    { if((rand()%4+1)==1) ;
+       else
+       {i++;
+       digitalWrite(buzzer,HIGH);
+       delay(200);
+       digitalWrite(buzzer,LOW);}
+    }   
+     if(analogRead(1)>512)
+    { if((rand()%9+1)==4) ;
+      else i++;
+       digitalWrite(buzzer,HIGH);
+       delay(200);
+       digitalWrite(buzzer,LOW);
+    }
+    digitalWrite(p1,HIGH);
+    digitalWrite(p2,LOW);
+    if(analogRead(0)>512)
+      {if((rand()%9+1)==2) ;
+       else
+      { i++;
+      digitalWrite(buzzer,HIGH);
+       delay(200);
+       digitalWrite(buzzer,LOW);
+     }}   
+    if(analogRead(1)>512)
+     { if((rand()%9+1)==5) ;
+       else
+       {i++;
+       digitalWrite(buzzer,HIGH);
+       delay(200);
+       digitalWrite(buzzer,LOW);}
+     }
+    digitalWrite(p1,HIGH);
+    digitalWrite(p2,HIGH);
+    if(analogRead(0)>512)
+    { if((rand()%9+1)==3) ;
+    else { i++;
+       digitalWrite(buzzer,HIGH);
+       delay(200);
+       digitalWrite(buzzer,LOW);}
+     }
+     if(analogRead(1)>512)
+    { if((rand()%9+1)==6) ;
+     else
+      { i++;
+        digitalWrite(buzzer,HIGH);
+        delay(200);
+        digitalWrite(buzzer,LOW);}
+     }
+     digitalWrite(led1,LOW);
+     digitalWrite(led2,LOW);
+     digitalWrite(led3,LOW);
+     digitalWrite(led4,LOW);
+     return i;
+}
+int judge()
+{ 
+int j;
+  j++;
+  if(j<=10)
+  delay(51000);
+  if(j<=20&j>10)
+  delay(800);
+  if(j<=30&j>20)
+  delay(600);
+  if(j<=40&j>30)
+  delay(400);
+  if(j<50&j>40)
+  delay(200);
+return j;
+}
+void setup()
+{
+  int i;//定義變數
+  for(i=1;i<=13;i++)
+   pinMode(i,OUTPUT);//設定1～13接腳為輸出模式
+}
+void loop()
+{  int i,j;
+  while(1)
+  {  
+digitalWrite( buzzer,LOW);
+    led();
+    j=judge();
+    i=key_scan();
+    if(i=3)
+    { if(i--) {
+            digitalWrite(buzzer,HIGH);
+            delay(100);
+            digitalWrite(buzzer,LOW);
+            delay(100);}
+            break;}
+   if(j=50)
+       { for(j=5;j>0;j--){   
+            digitalWrite(buzzer,HIGH);
+            delay(100);
+            digitalWrite(buzzer,LOW);
+            delay(100);}
+            break;}
+  }
+}
+第12章控制類別開發
+12.1藍牙控制智慧車
+參考程式
+為了看清馬達的轉動，使用帶齒輪減速箱的微型馬達，由於它所需要的電壓低，可以直接使用Arduino電路板上的5伏電壓。馬達驅動板L298N也使Arduino電路板載5伏電壓，此馬達驅動板使用數位通訊埠4，5，6，7 控制馬達，正確連接馬達到M1+ ，M1-，M2+，M2-，數位通訊埠10，11連接到L298N的啟動端介面，下載程式到Arduino控制板，控制兩個直流馬達的正反轉，本程式作用兩個直流馬達先正轉一秒，暫停一秒，反轉一秒，如此反覆。
+int IN1=4; //數位通訊埠4與5為一組，6與7為另一組
+int IN2=5;
+int IN3=6;
+int IN4=7; 
+char val;
+int EN1=10;  //啟動通訊埠1
+int EN2=11;  //啟動通訊埠2
+int short_lights = 11;	// 定義燈
+int long_lights = 10;	
+int back_lights = 9;
+int reverse_lights = 8;
+void Motor1(boolean reverse)   //馬達1正轉
+{
+  if (reverse) //正轉
+  {
+    digitalWrite(IN1,HIGH);
+    digitalWrite(IN2,LOW);
+  } 
+  Else                        //反轉
+  {
+    digitalWrite(IN1,LOW);
+    digitalWrite(IN2,HIGH);
+  }
+ 
+} 
+void Motor2(boolean reverse)     //馬達2轉動
+{
+  if (reverse)                  //正轉
+  {
+    digitalWrite(IN3,HIGH);
+    digitalWrite(IN4,LOW);
+  } 
+  else                         //反轉
+  {
+    digitalWrite(IN3,LOW);
+    digitalWrite(IN4,HIGH);
+  } 
+} 
+void aa()                   //先正轉1秒停1秒後反轉1秒
+{                         //正轉
+  digitalWrite(IN3,LOW);
+  digitalWrite(IN4,HIGH);
+  digitalWrite(IN1,LOW);
+  digitalWrite(IN2,HIGH); 
+  delay(1000);   
+  stopMotor(true);
+  delay(1000);        //暫停一秒
+  stopMotor(false);    //恢復馬達啟動端高電位
+  digitalWrite(IN3,HIGH);  //反轉
+  digitalWrite(IN4,LOW);
+  digitalWrite(IN1,HIGH);
+  digitalWrite(IN2,LOW); 
+  delay(1000); 
+  stopMotor(true);   // 暫停
+  delay(1000); 
+  stopMotor(false); 
+} 
+void stopMotor(boolean r)  //馬達停轉
+{
+  if (r)
+  {
+    analogWrite(EN1,0);
+    analogWrite(EN2,0);
+  }
+  else
+  {
+    analogWrite(EN1,255); 
+    analogWrite(EN2,255);
+  }
+}  
+void setup()
+{
+  int i; 
+  for (i=4;i<=7;i++) //為Ardunio 馬達驅動板
+    pinMode(i,OUTPUT); //設定數位通訊埠4,5,6,7為輸出模式
+  for (i=4;i<=7;i++) 
+    digitalWrite(i,OUTPUT); //設定數位通訊埠4,5,6,7為HIGH,馬達保持不動
+pinMode(10,OUTPUT);//設定數位通訊埠10  11為輸出模式
+pinMode(11,OUTPUT);
+Serial.begin(9600);
+ }
+void go_forward(){          //向前運動
+  digitalWrite(IN3,LOW);
+  digitalWrite(IN4,HIGH);
+  digitalWrite(IN1,LOW);
+  digitalWrite(IN2,HIGH); 
+ }
+void stop_go_forward(){
+  digitalWrite(IN3,LOW);
+  digitalWrite(IN4,LOW);
+  digitalWrite(IN1,LOW);
+  digitalWrite(IN2,LOW);
+ } 
+void go_reverse() {        // 向後運動
+ digitalWrite(IN3,HIGH);
+ digitalWrite(IN4,LOW);
+ digitalWrite(IN1,HIGH);
+ digitalWrite(IN2,LOW); 
+}
+void stop_go_reverse() {   //停止反向運動
+ digitalWrite(IN3,LOW);
+ digitalWrite(IN4,LOW);
+ digitalWrite(IN1,LOW);
+ digitalWrite(IN2,LOW);
+}
+void go_left() {              //左轉
+  digitalWrite(IN3,LOW);
+  digitalWrite(IN4,HIGH);
+  digitalWrite(IN1,LOW);
+  digitalWrite(IN2,LOW); 
+}
+void go_right() {             // 右轉
+  digitalWrite(IN3,LOW);
+  digitalWrite(IN4,LOW);
+  digitalWrite(IN1,LOW);
+  digitalWrite(IN2,HIGH); 
+}
+void stop_turn() {             // 停止轉向
+  digitalWrite(IN3,LOW);
+  digitalWrite(IN4,LOW);
+  digitalWrite(IN1,LOW);
+  digitalWrite(IN2,LOW);
+}
+void stop_car() {               // 停車
+  digitalWrite(IN3,LOW);
+  digitalWrite(IN4,LOW);
+  digitalWrite(IN1,LOW);
+  digitalWrite(IN2,LOW);
+}
+void lights_on() {                
+  digitalWrite(short_lights, HIGH);
+  digitalWrite(back_lights, HIGH);
+}
+
+void lights_off() {                 
+  digitalWrite(short_lights, LOW);
+  digitalWrite(back_lights, LOW);
+}
+void long_lights_on() {
+   digitalWrite(long_lights, HIGH);
+}
+void long_lights_off() {
+    digitalWrite(long_lights, LOW);
+}
+void back_lights_on() {
+  digitalWrite(reverse_lights, HIGH);
+}
+void back_lights_off() {
+  digitalWrite(reverse_lights, LOW);
+}
+void performCommand() {//讀取序列埠資料並執行指令
+  if (Serial.available()) {
+    val = Serial.read();
+  }
+  if (val == 'f') { // 向前
+    go_forward();
+  } else if (val == 'z') { //停止向前
+    stop_go_forward();
+  } else if (val == 'b') { // 向後
+    go_reverse();
+  } else if (val == 'y') { // 停止向後
+    stop_go_reverse();
+  } else if (val == 't') { // 加速
+     go_turbo();
+  } else if (val == 'x') { // 停止加速
+     stop_go_turbo();
+  } else if (val == 'l') { // 右轉
+     go_right();
+    } else if (val == 'r') { // 左轉
+      go_left();
+    } else if (val == 'v') { // 停止轉動
+      stop_turn();
+    } else if (val == 's') { // 停止
+      stop_car();
+    } else if (val == 'a') { // 短燈
+      lights_on();
+    } else if (val == 'c') { // 停止短燈
+      lights_off();
+    } else if (val == 'd') { // 長燈
+      long_lights_on();
+    } else if (val == 'e') { // 停止長燈
+      long_lights_off();
+    }  
+}
+void loop()
+{
+performCommand();  
+}
+12.2 可抓取機械手臂
+參考程式
+#include <Servo.h>
+Servo servo1;   //定義5個伺服物件
+Servo servo2;
+Servo servo3;
+Servo servo4;
+Servo servo5;
+int pot1,pot2,pot3,pot4,pot5;  //定義5個電位器介面
+void setup()
+{
+  servo1.attach(1);  //物件連接到對應的伺服介面上
+  servo2.attach(2);
+  servo3.attach(3);
+  servo4.attach(4);
+  servo5.attach(5);
+  servo1.write(90);  //開始時將伺服置於中間
+  servo2.write(90);
+  servo3.write(90);
+  servo4.write(90);
+  servo5.write(90);
+}
+void loop()
+{
+  pot1=analogRead(1)   ;//從對應的模擬介面讀取電位器的值
+  pot2=analogRead(2);
+  pot3=analogRead(3);
+  pot4=analogRead(4);
+  pot5=analogRead(5);
+  pot1=map(pot1,0,1023,0,180);  //將讀取到的值轉化為角度模量並輸出
+  pot2=map(pot2,0,1023,0,180);
+  pot3=map(pot3,0,1023,0,180);
+  pot4=map(pot4,0,1023,0,180);
+  pot5=map(pot5,0,1023,0,180);
+  servo1.write(pot1);
+  servo2.write(pot2);
+  servo3.write(pot3);
+  servo4.write(pot4);
+  servo5.write(pot5);
+  delay(15);
+}
+第13章互動類別開發
+13.1 虛擬架子鼓
+參考程式
+每一個模組的程式是分開的，在實際執行之前需要進行整合。
+1、MIDI訊號模組
+這段程式是設定傳送MIDI訊號參數的函數NoteOn（），在setup中設定MIDI統一串列傳輸速率31250，此後的處理程序中包含NoteOn（）即可。
+void noteOn(byte channel,byte note,byte velocity)
+{
+  midiMsg(channel+0x90,note,velocity);
+}
+void midiMsg(byte cmd,byte data1,byte data2)
+{
+  Serial.write(cmd);
+  Serial.write(data1);
+  Serial.write(data2);
+}
+void setup()
+{
+  Serial.begin(31250);
+}
+2、感測器模組
+本模組了採用兩種方法在確保系統靈敏度的前提下，保障其發聲穩定性。下面以光敏電阻（右腳小鼓部分）為例，解釋其工作原理，這一部分隻列出範例部分。
+（1）使用時間判斷，加入millis()函數。
+long previousMillis3 = 0; //標頭檔中設定起初時間間隔為零
+void loop()部分開始即記錄時間
+unsigned  long currentMillis = millis();
+if( currentKickState<40 && (currentMillis --previousMillis3) > interval3 )  
+// 條件判斷中達到一定時間間隔才會控制發聲
+（2）記錄資料，對一段時間內的平均值進行判斷，提升系統穩定性。
+int kickReadings[numKickReadings]={0}; //陣列及參數初始化
+int kickIndex = 0;
+int kickTotal = 0;
+int kickAverage = 0;
+int currentKickState; 
+int switchKickState = 0;
+//取得數值記錄並處理
+//計算平均值
+kickAverage = kickTotal / numKickReadings;
+//陣列資料循環更新
+kickTotal = kickTotal - kickReadings[kickIndex];
+kickReadings[kickIndex] = analogRead(A2);
+kickTotal = kickTotal + kickReadings[kickIndex];
+kickIndex = kickIndex + 1;
+if(kickIndex >= numKickReadings)
+kickIndex = 0;
+//重新計算平均值
+kickAverage = kickTotal / numKickReadings;
+//目前狀態更新
+currentKickState = kickAverage;
+3、傾斜開關（鼓槌）
+這一部分以傾斜開關傾斜角度不同反應雙手動作狀態，arduino經A0，A1口取得模擬值，模擬值大於600時向PC輸出MIDI訊號。
+const int numSnareReadings =10;
+const int numHighHatReadings=10;
+const int numKickReadings=5;
+const int numCrashReadings=10;
+snareAverage = snareTotal / numSnareReadings;
+snareTotal = snareTotal - snareReadings[snareIndex];
+snareReadings[snareIndex] = analogRead(A0);
+snareTotal = snareTotal + snareReadings[snareIndex];
+snareIndex = snareIndex + 1;
+if(snareIndex >= numSnareReadings)
+  snareIndex = 0;
+  snareAverage = snareTotal / numSnareReadings;
+  currentSnareState = snareAverage; 
+if( currentSnareState > 600 && (currentMillis -previousMillis1) > interval1)
+  {  previousMillis1 = currentMillis;
+     noteOn(9, 38, 120);}
+4、踏板系統
+這一部分更改RFID讀卡機門禁系統的功用，操作過程中，將白卡固定在鞋底，讀卡模組封裝成踏板樣式，當腳接近踏板，讀卡機識別白卡後，進行發送MIDI訊號的動作。
+#include <SPI.h>
+uchar i, tmp;
+uchar status;
+uchar RC_size;
+uchar blockAddr;	//選擇操作的區塊位址0～63
+char data1;
+set up（）函數中包含：
+MFRC522_Init();
+Loop函數中判斷及控制：
+status = MFRC522_Request(PICC_REQIDL, str_tem);
+if (status == MI_OK)
+  {
+    digitalWrite(selectRelay, HIGH); //turn on the device .
+    noteOn(9,54, 120);//lf
+    noteOn(8,54,0);
+delay(250);
+}
+常式應該含有門禁系統中實現MFRC522重置，初始化，依次讀取位元組資料函數及控制天線開啟關閉的函數，在此不一一列出。
+5、8×8點陣
+這一部分使用8×8點陣，做出隨動作舞動的小人，在實現以上控制系統按不同動作發聲後，為使互動顯示更明顯，加入8×8點陣顯示模組，在每個感測器模組控制的動作中加入更改點陣影像的程式，並在無動作輸入時設定一種影像，即可實現常態時小人直立，動作觸發後，小人活動對應四肢。
+//加入標頭檔實現中斷
+#include <TimerOne.h>
+//函數中設定中斷間隔及中斷後動作
+Timer1.initialize(10000);
+Timer1.attachInterrupt(screenUpdate);
+//函數中點陣常態影像設定
+if(currentKickState>=40&&currentHighHatState<=512&&currentSnareState<=512&&status != MI_OK)
+{
+led[0]=B00011100;
+led[1]=B00010100;
+led[2]=B00011100;
+led[3]=B00001000;
+led[4]=B00011100;
+led[5]=B00101010;
+led[6]=B00010100;
+led[7]=B00010100;
+}
+//在各個模組if條件控制中加入以下程式，更改點陣影像，其中1為高電位，表示對應位置led亮，0為低電位對應位置燈滅，可根據需要設計不同圖案。
+led[0]=B00011100;
+led[1]=B00010100;
+led[2]=B00011100;
+led[3]=B00001000;
+led[4]=B00011100;
+led[5]=B00101010;
+led[6]=B00010100;
+led[7]=B00100100;
+//中斷時執行的函數，更新點陣影像，並保障穩定顯示
+void screenUpdate()
+{
+  byte row=B10000000;
+  for(byte k=0;k<8;k++)
+  {
+    digitalWrite(latchPin,LOW);
+    shiftIt(~led[k]);
+    shiftIt(row);
+    digitalWrite(latchPin,HIGH);
+    row=row>>1;
+  }
+}
+void shiftIt(byte dataOut)
+{
+  boolean pinState;
+  digitalWrite(dataPin,LOW);
+  for(int i=0;i<8;i++)
+  {
+    digitalWrite(clockPin,LOW);
+    if(dataOut & (1<<i) )
+    {
+      pinState=HIGH;
+    }
+    else
+    {
+      pinState=LOW;
+    }    
+    digitalWrite(dataPin,pinState);
+    digitalWrite(clockPin,HIGH);
+    digitalWrite(dataPin,LOW);
+  }
+  digitalWrite(clockPin,LOW);
+}  13.2 觸控按鍵互動設計
+參考程式
+下面的程式便是本專案的觸控按鍵的程式，請讀者在學習之後，構思出更有趣的設計。
+#include "UsbKeyboard.h“
+int InData1 = 0, InData2 = 0, InData3 = 0, InData4 = 0, InData5 = 0, InData0 = 0;  
+//觸控輸入值暫存
+int TouchSensitivity = 30;  //觸控靈敏度。0~1023，越大越不靈敏
+void setup()
+{
+  for(int i = A0; i <= A5; i++)
+  {
+    pinMode(i, INPUT);    //A0~A5端設定為輸入
+    digitalWrite(i, HIGH);   //並且上拉電位
+  } 
+ TIMSK0 &= !(1 << TOIE0);
+}
+ void loop()
+{
+  UsbKeyboard.update();
+  //讀取所有接腳電壓值，並且由於上拉電阻原因，
+  //預設所有接腳為最高電位1023，透過觸控拉低接腳電位。
+  //所以數值由1024-analogRead(A0);
+InData0 = 1024 - analogRead(A0);                  
+InData1 = 1024 - analogRead(A1);  
+InData2 = 1024 - analogRead(A2);  
+InData3 = 1024 - analogRead(A3);  
+InData4 = 1024 - analogRead(A4);  
+InData5 = 1024 - analogRead(A5);  //按照各種可能觸發鍵盤事件
+if(InData0 >= TouchSensitivity)
+  {
+    UsbKeyboard.sendKeyStroke(79);  //向右
+  }
+  if(InData1 >= TouchSensitivity)
+  {
+    UsbKeyboard.sendKeyStroke(80);  //向左
+  }
+  if(InData2 >= TouchSensitivity)
+  {
+    UsbKeyboard.sendKeyStroke(81);  //向下
+  }
+  if(InData3 >= TouchSensitivity)
+  {
+    UsbKeyboard.sendKeyStroke(82);  //向上
+  }
+if(InData4 >= TouchSensitivity) 
+ {
+    UsbKeyboard.sendKeyStroke(KEY_SPACE);
+  }
+  if(InData5 >= TouchSensitivity)  
+{
+    UsbKeyboard.sendKeyStroke(KEY_ENTER);
+  }
+  delay(100);
+}  第14章物聯網開發
+1、LCD顯示幕
+利用LCD顯示幕來實現對本機的溫度、濕度以及光源強度的即時觀測。使用數字序列埠4、5連接顯示幕，實現資料的接收。將其對應的電源和接地口正確連接後方可正常執行。
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27,16,2);
+void setup(){	
+     Serial.begin(9600);
+     lcd.init();
+lcd.backlight();
+}
+void loop(){
+lcd.print("Celcius(min):");
+		lcd.print(celdown);
+lcd.setCursor(0,1);
+		lcd.print("Celcius(max):");
+		lcd.print(celup);
+		delay(3000);
+		lcd.clear();
+lcd.print("Humidity(min):");
+		lcd.print(humdown);
+		lcd.setCursor(0,1);
+		lcd.print("Humidity(max):");
+		lcd.print(humup);
+		delay(3000);
+		lcd.clear();
+		lcd.print("Light(min):");
+		lcd.print(lightdown);
+		lcd.setCursor(0,1);
+		lcd.print("Light(max):");
+		lcd.print(lightup);
+		delay(3000);
+		lcd.clear();
+lcd.print("celcius:");
+lcd.print((float)DHT11.temperature);
+lcd.setCursor(0,1);
+int sensorValue = 1026-analogRead(A0);
+lcd.print("humidity:");
+lcd.print(sensorValue);
+delay(500);}
+
+2、光敏電阻
+利用光敏電阻來實現對植物周圍光源強度的擷取。透過光敏電阻與電阻的串聯，將光敏電阻一端接地，另一端接數字3口。
+val1=analogRead(A3);//讀取感測器的模擬值並設定值給val1 
+Serial.println(val);//顯示val 變數值
+Serial.print("light:");
+Serial.println(val1);
+delay(1000);
+
+3、按鍵開關
+透過按鍵開關來控制系統的參數重置。按鍵開關和電阻串聯，按鍵開關的一端接地，另一端連接模擬13口，電阻一端接5v電源。
+int inpin=13;
+void setup(){
+pinMode(inpin,INPUT);    //定義按鍵介面為輸入介面
+}
+void loop(){
+   if(i==0){             //程式主體部分
+        i=1;
+        val2=digitalRead(inpin);
+        if(val2==LOW)  //檢測按鍵是否按下
+            { i=0;}
+}
+
+4、DHT11模組
+透過dht11模組來實現對植物周圍的空氣溫度資料進行擷取。透過模組接腳將其與電源，模擬地，以及模擬9口連接。
+#include <dht11.h>
+#define DHT11PIN 9
+int val1;
+void loop{
+int chk=DHT11.read(DHT11PIN);
+}
+
+5、yl-38土壤溫濕度模組
+透過土壤溫濕度模組來擷取植物所處土壤環境的濕度資訊。將模組的電源與接地接腳與Arduino電路板電源，接地口相連接，將另一接腳與數字序列埠0相連接。
+int sensorValue = 1026-analogRead(A0);
+lcd.print("humidity:");
+lcd.print(sensorValue);
+delay(500);
+
+6、人體紅外感應模組
+透過人體紅外感應模組，來對接近植物的人進行感應，和語音模組相結合實現打招呼功能。將人體紅外感應模組與arduino的GND已經模擬12口相連接。
+int renpin=8;
+void setup(){
+        pinMode(renpin,INPUT);//定義按鍵介面為輸入介面
+}
+void loop(){
+	int val10=digitalRead(renpin);                
+}
+
+7、4×4按鍵模組
+透過4×4按鍵模組結合語音模組完成植物參數上下限的輸入。為了節省序列埠，僅利用模組的7個接腳，將其轉變為4×3模組，行連接Arduino電路板的2,3,10,5序列埠，列連接6,15,16序列埠。
+#include <Keypad.h>
+char keys[ROWS][COLS] = { 
+{'1','2','3'}, 
+{'4','5','6'}, 
+{'7','8','9'},  
+{'*','0','#'} 
+};
+//連接4*4 按鍵的行位元通訊埠，對應控制板的數位IO 口
+byte rowPins[ROWS] = {2,3,10,5};
+//連接4*4 按鍵的列位元通訊埠，對應控制板的數位IO 口
+byte colPins[COLS] = {6,15,16}; 
+//呼叫Keypad 類別庫功能函數
+Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS ); 
+int celup,celdown,humup,humdown,lightup,lightdown;
+void setup{
+       serial.begin（9600）;}
+void loop{
+   int cel1=shownum();int cel2=shownum();
+       celdown=min(cel1,cel2);
+celup=max(cel1,cel2);
+int hum1=shownum();int hum2=shownum();
+humdown=min(hum1,hum2);
+humup=max(hum1,hum2);
+int light1=shownum();int light2=shownum();
+lightdown=min(light1,light2);
+lcd.print(lightdown);
+lightup=max(light1,light2);
+}
+int shownum()
+{  int Array[2];
+   			int i=0;
+   			while(i<=3){
+int c=keypad.getKey()-48; 
+    			if(c<=9&&c>=0&&i<3)
+     			{ Array[i]=c;Serial.print(Array[i]);lcd.setCursor(i,0);lcd.print(Array[i]);i++;}
+     			else if(c==-6){
+        			 i--;
+        			 lcd.setCursor(i,0);
+       				 lcd.print(" ");
+        		}
+      			else if(c==-13)
+         			{lcd.clear();
+          			return Array[0]*100+Array[1]*10+Array[2];    
+    } 
+ }  
+}
+
+8、RGB模組
+透過RGB模組來對過高和過低的溫度和濕度進行警告。顯示綠燈則表示參數在正常範圍內，顯示紅燈則過高，黃燈則為過低。
+void loop{
+    if((float)DHT11.temperature<=celdown){
+    	color(255,255,0);//g
+    	delay(100);}
+  	else if((float)DHT11.temperature>=celup){
+   		color(255,0,0);
+    	delay(100);}
+    	else{
+    	color(0,255,0);//
+    	delay(100);}     
+   	if(sensorValue<=humup&&sensorValue>=humdown){
+    	color1(0,255,0);//b
+    	delay(100);}
+  	else if(sensorValue>humup){
+    	color1(255,0,0);
+    	delay(100);}
+    else{
+    	color1(255,255,0);//g
+    	delay(100);}     
+   	lcd.clear();}
+void color (unsigned char red, unsigned char green, unsigned char blue)     
+{    
+          analogWrite(redPin, 255-red);   
+          analogWrite(greenPin, 255-green); 
+}     
+
+void color1 (unsigned char red, unsigned char green, unsigned char blue)     
+{    
+          analogWrite(redPin1, 255-red);   
+          analogWrite(greenPin1, 255-green); 
+}  
+
+9、Syn6288 語音模組
+透過語音模組提示完成參數的輸入，與紅外感應模組相結合實現打招呼功能，並且用語音完成光強過高和過低的警告。語音模組連接Arduino電路板上的txo和txd口，並且與電源相連接。
+#include <Syn6288.h>
+Syn6288 mytalk;
+void setup(){
+  Serial.begin(9600);
+}
+void loop(){
+// Serial.print("yeelink:");
+//Serial.println((float)DHT11.temperature);
+// Serial.println((float)DHT11.humidity);
+if(i==0){
+delay(2000);
+    	mytalk.speechhello();
+    	delay(4000);
+    	mytalk.speechtemp();
+     	delay(5000);
+     	mytalk.speechlight();
+delay(5000);
+if(val1<lightdown)
+ 	delay(1000);
+ 	{mytalk.speechlow();
+  	delay(1500);}
+ 	if(val1>lightup)
+ 	{
+  		mytalk.speechhigh();
+  		delay(1500);
+ 	}
+}
+
+10、Wifi shield w5100模組
+透過wifi shield w5100模組和另一塊arduino相連接，將該Arduino電路板上面讀到的溫度、濕度和光源強度傳到帶wifi的擴充板上，完成資料上傳到物聯網平台，並且定時發送微博。將兩塊Arduino電路板的模擬9口，數字0口和數字3口相連接，並統一模擬地。
+#define LW_USERKEY "3938b9e6c1c8402c8613aa863bec6e27"
+#define LW_GATEWAY "02"
+#define POST_INTERVAL (1000)
+LeWeiClient *lwc;
+void setup(){
+     Serial.begin(9600);
+     lwc = new LeWeiClient(LW_USERKEY, LW_GATEWAY);
+} 
+void loop(){
+     if (lwc){
+	Serial.println("read data ");
+	int l=analogRead(A3);
+	int chk=DHT11.read(DHT11PIN);
+	float temp_c= DHT11.temperature; // 從感測器讀取數值
+	Serial.println(temp_c);
+	int humidity =1024-analogRead(A0);
+	Serial.println(humidity);
+	lwc->append("t1", temp_c);
+	lwc->append("h2", humidity);
+	lwc->append("l", l);    
+	lwc->send();
+	Serial.println("*** send completed ***");
+	delay(POST_INTERVAL);
+   }
+}
+14.2 環境資訊擷取系統
+參考程式
+下文提供環境檢測系統的參考程式，供讀者閱讀參考。
+#include <dht11.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h> 
+LiquidCrystal_I2C lcd(0x27,16,2); 
+#define DHT11PIN 9
+#define AR_SIZE( a ) sizeof( a ) / sizeof( a[0] )
+float temp_f;  
+float temp_c;
+float humidity;               //溫度濕度等變數定義
+float dustVal=0;
+float voltage=0;
+float dustdensity=20;			//臨時灰塵品質濃度
+float tempdustdensity = 0;
+float ppmpercf=0;
+float offTime=9680;
+float sum1=0;
+float sum2=0;
+float sum3=0;
+float aver=0;
+double Fahrenheit(double celsius)      //溫濕度模組
+{
+        return 1.8 * celsius + 32;
+}                                //攝氏溫度度轉化為華氏溫度
+
+double Kelvin(double celsius)
+{
+        return celsius + 273.15;
+}                                   //攝氏溫度轉化為開氏溫度
+// 露點（點在此溫度時，空氣飽和並產生露珠）
+// 參考: http://wahiduddin.net/calc/density_algorithms.htm 
+double dewPoint(double celsius, double humidity)
+{
+        double A0= 373.15/(273.15 + celsius);
+        double SUM = -7.90298 * (A0-1);
+        SUM += 5.02808 * log10(A0);
+        SUM += -1.3816e-7 * (pow(10, (11.344*(1-1/A0)))-1) ;
+        SUM += 8.1328e-3 * (pow(10,(-3.49149*(A0-1)))-1) ;
+        SUM += log10(1013.246);
+        double VP = pow(10, SUM-3) * humidity;
+        double T = log(VP/0.61078);   // temp var
+        return (241.88 * T) / (17.558-T);
+}
+// 快速計算露點，速度是5倍dewPoint()
+// 參考: http://en.wikipedia.org/wiki/Dew_point
+double dewPointFast(double celsius, double humidity)
+{
+        double a = 17.271;
+        double b = 237.7;
+        double temp = (a * celsius) / (b + celsius) + log(humidity/100);
+        double Td = (b * temp) / (a - temp);
+        return Td;
+}
+dht11 DHT11;		           //初始化溫濕度模組
+int chipSelect = 4;
+int dustPin=0;
+int i=0;
+int ledPower=2;				//粉塵感測器
+int delayTime=280;
+int delayTime2=40;
+int fanPower=6;
+char str1[4]; //定義溫度值儲存陣列，4位元，其中3位元為數字，1位為小數點
+char str2[4];//溫度
+char str3[4];//濕度
+char str4[4];//平均灰塵密度
+char s[32]; //灰塵粒子
+float temp1=0; //定義中間變數，用於將取得的float型溫度值轉變為unsigned char陣列
+float temp2=0;
+float temp3=0;
+double tempa=0;
+double tempb=0;
+double tempc=0;
+unsigned char show1[]={0x70, 0x00,  0x6D, 0x00,  0x32, 0x00,  0x2E, 0x00,  0x35, 0x00,  0xA3, 0xBA };                    //PM2.5：
+unsigned char show2[]={0xCE, 0xC2,0xB6, 0xC8,0xA3, 0xBA};    //溫度：
+unsigned char show3[]={0xCA, 0xAA,0xB6, 0xC8, 0xA3, 0xBA};   //濕度：
+unsigned char Str01[]={0xA6, 0xCC,0x67, 0x00,0x2F, 0x00,0x6D, 0x00,0x33, 0x00 };                    //μg/m3
+unsigned char Str02[]={0xA1, 0xE6 };                         //℃
+unsigned char Str00[]={0x25, 0x00 };                          //% 
+void setup()
+{
+  Serial.begin(9600);
+  pinMode(ledPower,OUTPUT);  	//粉塵感測器
+pinMode(7, OUTPUT);			//dht11模組
+pinMode(10, OUTPUT);		    //ENC擴充模組
+  pinMode(fanPower,OUTPUT);   
+  digitalWrite(fanPower,LOW);      //繼電器控制腳
+LCDA.Initialise();               // 螢幕初始化
+				                //顯示器輸出
+unsigned char opening[]={ 0xCF, 0xB5, 0xCD, 0xB3,0xB3, 0xF5,0xCA, 0xBC,		  0xBB, 0xAF, 0xA3, 0xAE,	 };                    //系統初始化．．．
+unsigned char opening2[]={0xA3, 0xAE};			  
+LCDA.DisplayString(1,0,opening,AR_SIZE(opening));
+delay(1000);
+LCDA.DisplayString(1,6,opening2,AR_SIZE(opening2));
+delay(1000);
+LCDA.DisplayString(1,7,opening2,AR_SIZE(opening2));
+delay(5000);
+LCDA.CLEAR();*/
+lcd.init();                               // 初始化LCD
+lcd.backlight(); 
+lcd.print("Temp:123"); 
+}
+void loop()
+{
+  lcd.clear();
+int chk = DHT11.read(DHT11PIN);
+  Serial.print("Read sensor: ");
+  switch (chk)
+  {
+    case DHTLIB_OK: 
+                Serial.println("OK"); break;
+    case DHTLIB_ERROR_CHECKSUM: 
+                Serial.println("Checksum error"); break;
+    case DHTLIB_ERROR_TIMEOUT: 
+                Serial.println("Time out error"); break;
+    default: 
+                Serial.println("Unknown error"); break;
+  }  
+  sum1=0;
+  sum2=0;
+  sum3=0;
+  for(i=20;i>=0;i--)
+  {
+    digitalWrite(ledPower,LOW); // power on the LED
+    delayMicroseconds(delayTime);
+    dustVal=analogRead(dustPin);
+    voltage = dustVal*0.0049;
+    tempdustdensity =(0.172*voltage-0.0999)*2000;//臨時灰塵品質濃度
+    temp_c = DHT11.temperature;  //讀溫度值
+    Serial.print("temp:");
+    Serial.print(temp_c);
+    Serial.print(" ");
+    Serial.print(DHT11.temperature);
+    temp_f = (float)DHT11.humidity;  // 讀濕度值
+    dustdensity=tempdustdensity;
+    delayMicroseconds(delayTime2);
+    digitalWrite(ledPower,HIGH); // turn the LED off
+    delayMicroseconds(offTime); 
+    sum1=sum1+dustdensity;				//灰塵總濃度
+    sum2=sum2+temp_c;					//溫度總值
+    sum3=sum3+temp_f;					//濕度總值
+    delay(300);
+  }
+    temp1=sum1/20;						//粉塵平均值
+    tempa=temp1;						   //平均值
+    if(temp1<40)
+    { 
+     digitalWrite(fanPower,LOW); // 開啟風扇
+	 Serial.println("dustdensity below 40");
+    }
+    if(temp1>40)
+    {
+	Serial.println("dustdensity above 40");
+        Serial.println(temp1);
+     //digitalWrite(fanPower,HIGH); // power on the fan
+    }
+    temp2=sum2/20;							//溫度平均值
+    tempb=temp2;
+    temp3=sum3/20;							//濕度平均值
+    tempc=temp3;
+    static char tempStr1[10];  
+    static char tempStr2[10];  
+    static char tempStr3[10]; 
+    static char tempStr4[10];
+    String dataString1="Dust:";
+    floatToString(temp1,tempStr1);			  //字串粉塵
+    dtostrf(tempa,4,2,str1);				      //將小數轉換成字串
+    dataString1 += String(tempStr1);
+    Serial.println(tempStr1);
+    lcd.clear();			                  //粉塵
+    lcd.print(dataString1);
+    
+    if(temp1>500)
+    {
+      for(int i=200;i<=800;i++)        //用循環的方式將頻率從200HZ 增加到800HZ
+{
+          pinMode(4,OUTPUT);
+          tone(4,i);                          //在四號通訊埠輸出頻率
+          delay(5);                          //該頻率維持5毫秒
+}
+delay(4000);                            //最高頻率下維持4秒鐘
+for(int i=800;i>=200;i--)
+{
+       pinMode(4,OUTPUT);
+   tone(4,i);
+ delay(10);
+}
+    }
+    if(temp1<500)
+    {pinMode(4,OUTPUT);
+    pinMode(4,LOW);}
+    if(temp1>300)
+    {
+      int ledPin = 10; //定義數字10 介面
+      pinMode(ledPin, OUTPUT);//定義小燈介面為輸出介面
+      digitalWrite(ledPin, HIGH); //點亮小燈
+     }
+    if(temp1<300)
+    {pinMode(10,OUTPUT);
+    pinMode(10,LOW);}    
+    Serial.println(dataString1);
+    delay(1000);    
+    String dataString2 = "Temp:";
+    floatToString(temp2,tempStr2);
+    dtostrf(tempb,4,2,str2);    
+    dataString2 += String(tempStr2);             //溫度
+    lcd.clear();
+    lcd.print(dataString2);
+    Serial.println(dataString2);
+    delay(1000);	    			
+    String dataString3 = "Humidity;"; 
+    floatToString(temp3,tempStr3);
+    dtostrf(tempc,4,2,str3);
+    dataString3 +=String(tempStr3);				//濕度
+    Serial.println(dataString);
+   lcd.clear();
+    lcd.print(dataString3);
+    Serial.println(dataString3);
+    delay(1000);    
+    LCDA.DisplayString(1,0,(unsigned char *)str1,sizeof(str1)); //pm2.5
+    LCDA.DisplayString(1,3,(unsigned char *)Str01,sizeof(Str01));//pm2.5單位
+    LCDA.DisplayString(2,3,(unsigned char *)str2,sizeof(str2));//溫度
+    LCDA.DisplayString(2,6,(unsigned char *)Str02,sizeof(Str02));//溫度單位
+    LCDA.DisplayString(3,3,(unsigned char *)str3,sizeof(str3));//濕度
+    LCDA.DisplayString(3,5,(unsigned char *)Str00,sizeof(Str00));//濕度單位
+	Serial.println(' ');
+    delay(1000);
+}
+void floatToString(float in,char* out){
+    uint16_t Tc_100 = in*10;
+    uint8_t whole, fract;
+    whole = Tc_100/10;  // 分離整數和小數
+    fract = Tc_100 % 10;
+    sprintf(out,"%d.%d",whole,fract); 
+}
+14.3家居燈光控制系統
+參考程式
+家居燈光控制系統的程式實現如下所示，讀者在參考程式的同時，可以嘗試自己修改，使它擁有更多的功能。
+int flag=0;
+int val=0;
+int bluetoothpin=12;     //設定數位通訊埠12為藍牙模組的訊號輸出通訊埠
+int val1=0;
+int potpin=0;           //設定模擬介面A0為光敏電阻輸入通訊埠
+int ledpin=11;          //定義11通訊埠為光敏電阻輸出通訊埠
+int val2=0;
+int potpin1=3;          //設定模擬介面A3為壓力感測器輸入通訊埠
+int lightpin=10;         //定義數位通訊埠10為壓力感測器的輸出通訊埠通訊埠
+void setup() 
+{
+  Serial.begin(9600);              //串列傳輸速率
+  pinMode(bluetoothpin,OUTPUT);  //設定bluetoothpin通訊埠模式
+  pinMode(ledpin,OUTPUT);       //設定ledpin通訊埠模式
+  pinMode(potpin,INPUT);         //設potpin為光敏電阻的訊號輸入通訊埠
+  pinMode(lightpin,OUTPUT);      //設定lightpin通訊埠模式
+  pinMode(potpin1,INPUT);        //設potpin1為壓力感測器的訊號輸入通訊埠
+}
+void loop() 
+{
+   {  
+      val= Serial.read();//val從通訊埠讀取輸出
+      if(val=='l')//如果輸出高電位，則繼電器開啟
+       {
+           flag=~flag;
+          digitalWrite(bluetoothpin,flag); 
+           delay(50);
+       }
+    }
+    {
+       val1=analogRead(potpin);//讀取訊號
+       Serial.println(val1); //顯示val1變數值
+       analogWrite(ledpin,val1);
+       delay(50);
+}
+   {
+       val2= Serial.read();//從通訊埠讀取輸出
+       if(val2>100)//當壓力輸入訊號大於100g，開啟繼電器
+        {
+            flag=~flag;
+           digitalWrite(10,flag); 
+        }
+        val2=analogRead(potpin1);//讀取訊號
+        Serial.println(val2); //顯示val2 變數值
+        analogWrite(lightpin,val2)；
+        delay(200);
+    }    
+}
+
+第15章智慧農業設計與開發
+15.3.2 參考程式
+
+新的Arduino視窗開啟，並會出現程式如下：
+/*
+ Web Server 
+ A simple web server that shows the value of the analog input pins.
+ using an Arduino Wiznet Ethernet shield.  
+ Circuit:
+ Ethernet shield attached to pins 10, 11, 12, 13
+ Analog inputs attached to pins A0 through A5 (optional) 
+ created 18 Dec 2009
+ by David A. Mellis
+ modified 9 Apr 2012
+ by Tom Igoe 
+ */
+#include <SPI.h>
+#include <Ethernet.h>
+// Enter a MAC address and IP address for your controller below.
+// The IP address will be dependent on your local network:
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+IPAddress ip(192,168,1,177);
+// Initialize the Ethernet server library
+// with the IP address and port you want to use 
+// (port 80 is default for HTTP):
+EthernetServer server(80);
+void setup() {
+ // Open serial communications and wait for port to open:
+  Serial.begin(9600);
+   while (!Serial) {
+    ; // wait for serial port to connect. Needed for Leonardo only
+  }
+  // start the Ethernet connection and the server:
+  Ethernet.begin(mac, ip);
+  server.begin();
+  Serial.print("server is at ");
+  Serial.println(Ethernet.localIP());
+}
+void loop() {
+  // listen for incoming clients
+  EthernetClient client = server.available();
+  if (client) {
+    Serial.println("new client");
+    // an http request ends with a blank line
+    boolean currentLineIsBlank = true;
+    while (client.connected()) {
+      if (client.available()) {
+        char c = client.read();
+        Serial.write(c);
+        // if you've gotten to the end of the line (received a newline
+        // character) and the line is blank, the http request has ended,
+        // so you can send a reply
+        if (c == '\n' && currentLineIsBlank) {
+          // send a standard http response header
+          client.println("HTTP/1.1200 OK");
+          client.println("Content-Type: text/html");
+          client.println("Connection: close"); 
+ // the connection will be closed after completion of the response
+	      client.println("Refresh: 5");  // refresh the page automatically every 5 sec
+          client.println();
+          client.println("<!DOCTYPE HTML>");
+          client.println("<html>");
+          // output the value of each analog input pin
+          for (int analogChannel = 0; analogChannel < 6; analogChannel++) {
+            int sensorReading = analogRead(analogChannel);
+            client.print("analog input ");
+            client.print(analogChannel);
+            client.print(" is ");
+            client.print(sensorReading);
+            client.println("<br />");       
+          }
+          client.println("</html>");
+          break;
+        }
+        if (c == '\n') {
+          // you're starting a new line
+          currentLineIsBlank = true;
+        } 
+        else if (c != '\r') {
+          // you've gotten a character on the current line
+          currentLineIsBlank = false;
+        }
+      }
+    }
+     // give the web browser time to receive the data
+     delay(1);
+     // close the connection:
+     client.stop();
+     Serial.println("client disonnected");
+   }
+}
+15.4.2 Arduino的Get,Post程式
+
+新的Arduino視窗開啟，並會出現程式如下：
+/*
+ Web client 
+ This sketch connects to a website (http://www.google.com)
+ using an Arduino Wiznet Ethernet shield.  
+ Circuit:
+ Ethernet shield attached to pins 10, 11, 12, 13 
+ created 18 Dec 2009
+ by David A. Mellis
+ modified 9 Apr 2012
+ by Tom Igoe, based on work by Adrian McEwen 
+ */
+#include <SPI.h>
+#include <Ethernet.h>
+// Enter a MAC address for your controller below.
+// Newer Ethernet shields have a MAC address printed on a sticker on the shield
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+// if you don't want to use DNS (and reduce your sketch size)
+// use the numeric IP instead of the name for the server:
+//IPAddress server(74,125,232,128);  // numeric IP for Google (no DNS)
+char server[] = "www.google.com";    // name address for Google (using DNS)
+// Set the static IP address to use if the DHCP fails to assign
+IPAddress ip(192,168,0,177);
+// Initialize the Ethernet client library
+// with the IP address and port of the server 
+// that you want to connect to (port 80 is default for HTTP):
+EthernetClient client;
+void setup() {
+ // Open serial communications and wait for port to open:
+  Serial.begin(9600);
+   while (!Serial) {
+    ; // wait for serial port to connect. Needed for Leonardo only
+  }
+  // start the Ethernet connection:
+  if (Ethernet.begin(mac) == 0) {
+    Serial.println("Failed to configure Ethernet using DHCP");
+    // no point in carrying on, so do nothing forevermore:
+    // try to congifure using IP address instead of DHCP:
+    Ethernet.begin(mac, ip);
+  }
+  // give the Ethernet shield a second to initialize:
+  delay(1000);
+  Serial.println("connecting...");
+  // if you get a connection, report back via serial:
+  if (client.connect(server, 80)) {
+    Serial.println("connected");
+    // Make a HTTP request:
+    client.println("GET /search?q=arduino HTTP/1.1");
+    client.println("Host: www.google.com");
+    client.println("Connection: close");
+    client.println();
+  } 
+  else {
+    // kf you didn't get a connection to the server:
+    Serial.println("connection failed");
+  }
+}
+
+void loop()
+{
+  // if there are incoming bytes available 
+  // from the server, read them and print them:
+  if (client.available()) {
+    char c = client.read();
+    Serial.print(c);
+  }
+  // if the server's disconnected, stop the client:
+  if (!client.connected()) {
+    Serial.println();
+    Serial.println("disconnecting.");
+    client.stop();
+    // do nothing forevermore:
+    while(true);
+  }
+}
+程式中出現的以下程式：
+    client.println("GET /search?q=arduino HTTP/1.1");
+    client.println("Host: www.google.com");
+    client.println("Connection: close");
+    client.println();
+15.5.3 平台資料介面開發
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.ServiceModel;
+using System.ServiceModel.Activation;
+using System.ServiceModel.Web;
+using System.Text;
+using System.Net;
+namespace arduinoService
+{
+    [ServiceContract]
+    [AspNetCompatibilityRequirements(RequirementsMode = AspNetCompatibilityRequirementsMode.Allowed)]
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.PerCall)]
+    public class CategoryService
+    {
+        /// <summary>
+        /// 接收心跳
+        /// </summary>
+        /// <param name="GatewayID">閘道ID</param>
+        /// <param name="EquipmentID">裝置ID</param>
+        [WebInvoke(UriTemplate = "ReceiveHeartbeat/{GatewayID}/{EquipmentID}", Method = "POST")]
+        public void ReceiveHeartbeat(string GatewayID, string EquipmentID, string Data)
+        {
+            try
+            {
+              //呼叫儲存資料函數
+SaveSenerData（）
+                WebOperationContext.Current.OutgoingResponse.StatusCode = (HttpStatusCode)200;
+            }
+            catch (Exception ex)
+            {
+                WebOperationContext.Current.OutgoingResponse.StatusCode = (HttpStatusCode)500;
+            }            
+        }
+        private void SaveSenerData(Data)
+        { 			
+        }
+    }
+}
+
+15.5.5 撰寫平台圖片資料接收
+// <summary>
+// 接收圖片資訊
+// </summary>
+// <param name="GatewayID">閘道ID</param>
+// <param name="EquipmentID">裝置ID</param>
+// <param name="ImgData">圖片資料</param>
+[WebInvoke(UriTemplate = "ReceiveImgData/{GatewayID}/{EquipmentID}", Method = "POST")]
+public void ReceiveImgData(string sensorid, Stream image)
+{
+    dynamic dy = null;
+    FileStream pFileStream = null;
+    try
+    {
+        byte[] bytes = ReadFully(image);//Stream轉byte[]
+string fileName=string.Format(@"Upload/Note/{0}.jpg",Utilitys.GetGuid);<br> string dirPath=System.AppDomain.CurrentDomain.BaseDirectory;
+        if (!Directory.Exists(dirPath + @"Upload/Note/"))//如果不存在就建立file資料夾
+        {
+            Directory.CreateDirectory(dirPath + @"Upload/Note/");//建立該資料夾
+        }
+        string path = dirPath + fileName;
+        pFileStream = new FileStream(path, FileMode.OpenOrCreate);
+        pFileStream.Write(bytes, 0, bytes.Length);
+        dy = new { code = "1", msg = "上傳成功!", path = fileName };
+    }
+    catch (Exception ex)
+    {
+        throw ex;
+    }
+    finally
+    {
+        if (pFileStream != null)
+            pFileStream.Close();
+}
+
+15.5.6 Arduino請求平台
+#include <SPI.h>
+#include <Ethernet.h>
+//本機MAC位址
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+//遠端資料平台地址
+char address[] = "192.168.1.110";
+//int port = 80;
+EthernetClient client;
+#define GATEWAYID 100001
+#define EQUIPMENTID 1
+void setup()
+{
+	Serial.begin(38400);
+	//初始化網路
+	while(Ethernet.begin(mac) == 0){
+	}
+}
+void loop()
+{
+	if (client.available()) {
+		char c = client.read();
+	}
+	if (!client.connected() && lastConnected) {
+		client.stop();
+	}
+//定時循環心跳發送資料
+	Heartbeat();
+	delay(1);
+}
+//心跳
+void Heartbeat(){
+//如果連接遠端平台成功
+	if (client.connect(address, port)) {
+		// send the HTTP PUT request:
+		client.print("POST /CategoryService/ReceiveHeartbeat/");
+		client.print(GATEWAYID);//傳輸閘道ID
+		client.print("/");
+		client.print(EQUIPMENTID); //傳輸裝置ID
+		client.println(" HTTP/1.1");
+		client.print("Host: ");
+		if(port!=80){
+			client.print(address);
+			client.print(":");
+			client.println(port);
+		}
+		else{
+			client.println(address);
+		}
+		client.println("Content-type: text/json");
+client.println("Content-Length: 0");//此處長度為要傳輸的資料長度，實際格式參考HTTP協定說明
+		client.println("Connection: close");
+		client.println();
+		client.println();
+	}
+	else{
+		client.stop();
+	}
+}  
